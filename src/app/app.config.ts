@@ -3,15 +3,17 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { appRoutes } from './app.routes';  // Import de tes routes
-import { HttpClientModule } from '@angular/common/http';  // Import d'HttpClientModule pour effectuer des appels HTTP
+import { provideHttpClient } from '@angular/common/http';
 
 @NgModule({
   imports: [
     CommonModule,
-    RouterModule.forRoot(appRoutes), // Ajout des routes ici
-    HttpClientModule,  // Ajout du module HttpClient pour permettre les requêtes HTTP
+    RouterModule.forRoot(appRoutes), 
+    // Pas besoin de HttpClientModule ici, on utilise provideHttpClient
   ],
-  providers: [],  // Liste des services que tu peux injecter
-  exports: [RouterModule],  // Exportation de RouterModule pour qu'il soit disponible dans le reste de l'application
+  providers: [
+    provideHttpClient()  // Fournit HttpClient sans HttpClientModule
+  ],
+  exports: [RouterModule],
 })
 export class AppConfig {}
