@@ -5,5 +5,5 @@ import { TaskComponent } from './components/task/task.component';
 export const appRoutes: Routes = [
   { path: 'home', component: HomeComponent },
   { path: 'tasks', component: TaskComponent },
-  { path: '', redirectTo: '/home', pathMatch: 'full' },
+  { path: '', redirectTo: '/home', pathMatch: 'full' } // route par défaut
 ];
