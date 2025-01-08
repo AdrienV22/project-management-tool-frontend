@@ -1,10 +1,6 @@
-
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-import { AppComponent } from './app/app.component';
-import { BrowserModule } from '@angular/platform-browser';
-import { RouterModule } from '@angular/router';
-import { appRoutes } from './app/app.routes';
+import { AppConfig } from './app/app.config'; // Import correct du module principal
 
 platformBrowserDynamic()
-  .bootstrapModule(AppComponent)
+  .bootstrapModule(AppConfig) // Bootstraper AppConfig, pas AppComponent
   .catch(err => console.error(err));
