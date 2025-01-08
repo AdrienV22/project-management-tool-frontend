@@ -6,10 +6,10 @@ import { AppComponent } from './app.component';
 import { provideHttpClient } from '@angular/common/http';
 
 @NgModule({
-  declarations: [AppComponent], // Inclure ici les composants principaux
   imports: [
     CommonModule,
     RouterModule.forRoot(appRoutes), // Inclure le RouterModule avec les routes
+    AppComponent, // Importer AppComponent comme standalone component
   ],
   providers: [
     provideHttpClient(), // Fournir HttpClient
