@@ -1,26 +1,19 @@
-// src/app/app.config.ts
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { appRoutes } from './app.routes';  // Import des routes
-import { provideHttpClient } from '@angular/common/http';
+import { appRoutes } from './app.routes';
 import { AppComponent } from './app.component';
-import { HomeComponent } from './components/home/home.component';
-import { TaskComponent } from './components/task/task.component';
+import { provideHttpClient } from '@angular/common/http';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    HomeComponent, // Déclarer les composants ici
-    TaskComponent, // Déclarer les composants ici
-  ],
+  declarations: [AppComponent], // Inclure ici les composants principaux
   imports: [
     CommonModule,
-    RouterModule.forRoot(appRoutes),
+    RouterModule.forRoot(appRoutes), // Inclure le RouterModule avec les routes
   ],
   providers: [
-    provideHttpClient()  // Fournit HttpClient
+    provideHttpClient(), // Fournir HttpClient
   ],
-  bootstrap: [AppComponent],
+  bootstrap: [AppComponent], // Démarrage de l'application
 })
 export class AppConfig {}
