@@ -13,6 +13,7 @@ export const appRoutes: Routes = [
   { path: 'projects', component: ProjectsComponent },
   { path: 'projects/:id', component: ProjectDetailComponent },
   { path: 'tasks/:id', component: TaskComponent },
+  { path: 'home', component: HomeComponent },  // Ajoute cette ligne pour la route /home
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: '**', redirectTo: '/home' }, // Route de secours
 ];
