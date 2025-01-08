@@ -12,18 +12,16 @@ import { HomeComponent } from './components/home/home.component';
 import { provideHttpClient } from '@angular/common/http';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    LoginComponent,
-    RegisterComponent,
-    ProjectsComponent,
-    TaskComponent,
-    HomeComponent // Déclarer ici ton HomeComponent
-  ],
   imports: [
     BrowserModule,  // Utilise BrowserModule pour les applications dans le navigateur
     CommonModule,
     RouterModule.forRoot(appRoutes), // Configure le routage
+    AppComponent,   // Composant standalone importé ici
+    LoginComponent, // Idem pour les autres composants standalone
+    RegisterComponent,
+    ProjectsComponent,
+    TaskComponent,
+    HomeComponent,
   ],
   providers: [
     provideHttpClient(), // Fournit HttpClient
