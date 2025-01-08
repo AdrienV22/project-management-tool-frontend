@@ -13,7 +13,8 @@ export const appRoutes: Routes = [
   { path: 'projects', component: ProjectsComponent },
   { path: 'projects/:id', component: ProjectDetailComponent },
   { path: 'tasks/:id', component: TaskComponent },
-  { path: 'home', component: HomeComponent },  
+  { path: 'tasks', component: TaskComponent }, // Affiche toutes les tâches
+  { path: 'home', component: HomeComponent },  // Affiche une tâche spécifique
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: '**', redirectTo: '/home' }, // Route de secours
 ];
