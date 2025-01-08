@@ -1,15 +1,17 @@
 // src/app/components/task/task.component.ts
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { CommonModule } from '@angular/common';  // Import de CommonModule
 
 @Component({
   selector: 'app-task',
+  imports: [CommonModule],  // Ajout de CommonModule ici pour les directives *ngIf et *ngFor
   templateUrl: './task.component.html',
   styleUrls: ['./task.component.css']
 })
 export class TaskComponent implements OnInit {
   taskId: string | null = null;  // ID de la tâche si présent
-  tasks: string[] = ['Tâche 1', 'Tâche 2', 'Tâche 3'];  // Exemple de liste de tâches (tu peux l'adapter)
+  tasks: string[] = ['Tâche 1', 'Tâche 2', 'Tâche 3'];  // Exemple de liste de tâches
 
   constructor(private route: ActivatedRoute) {}
 
