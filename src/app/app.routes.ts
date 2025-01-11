@@ -6,15 +6,16 @@ import { ProjectsComponent } from './components/projects/projects.component';
 import { ProjectDetailComponent } from './components/project-detail/project-detail.component';
 import { HomeComponent } from './components/home/home.component';
 import { TaskComponent } from './components/task/task.component';
+import { AuthGuard } from './services/auth.guard'; // Import du guard
 
 export const appRoutes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
-  { path: 'projects', component: ProjectsComponent },
-  { path: 'projects/:id', component: ProjectDetailComponent },
-  { path: 'tasks/:id', component: TaskComponent },
-  { path: 'tasks', component: TaskComponent }, // Affiche toutes les tâches
-  { path: 'home', component: HomeComponent },  // Affiche une tâche spécifique
-  { path: '', redirectTo: '/home', pathMatch: 'full' },
-  { path: '**', redirectTo: '/home' }, // Route de secours
+  { path: 'projects', component: ProjectsComponent, canActivate: [AuthGuard] },
+  { path: 'projects/:id', component: ProjectDetailComponent, canActivate: [AuthGuard] },
+  { path: 'tasks/:id', component: TaskComponent, canActivate: [AuthGuard] },
+  { path: 'tasks', component: TaskComponent, canActivate: [AuthGuard] }, // Affiche toutes les tâches
+  { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },  // Affiche une tâche spécifique
+  { path: '', redirectTo: '/login', pathMatch: 'full' }, // Redirection par défaut vers login
+  { path: '**', redirectTo: '/login' }, // Route de secours vers login
 ];
