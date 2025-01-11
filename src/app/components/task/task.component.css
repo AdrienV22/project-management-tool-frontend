@@ -1,0 +1,67 @@
+/* src/app/components/task/task.component.css */
+
+/* Conteneur principal */
+.task-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Titre principal */
+.page-title {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #333;
+}
+
+/* Détails d'une tâche */
+.task-detail {
+  background-color: #fff;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.task-description {
+  margin-top: 10px;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* Liste des tâches */
+.task-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.task-item {
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.task-item:hover {
+  background-color: #f0f8ff;
+  transform: translateY(-2px);
+  cursor: pointer;
+}
+
+/* Liens ou boutons */
+.task-item a {
+  text-decoration: none;
+  color: #0078d7;
+  font-weight: bold;
+}
+
+.task-item a:hover {
+  text-decoration: underline;
+}

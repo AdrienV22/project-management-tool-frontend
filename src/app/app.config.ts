@@ -1,3 +1,4 @@
+import { FormsModule } from '@angular/forms'; 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BrowserModule } from '@angular/platform-browser';
@@ -16,8 +17,9 @@ import { provideHttpClient } from '@angular/common/http';
     BrowserModule,  // Utilise BrowserModule pour les applications dans le navigateur
     CommonModule,
     RouterModule.forRoot(appRoutes), // Configure le routage
-    AppComponent,   // Composant standalone importé ici
-    LoginComponent, // Idem pour les autres composants standalone
+    FormsModule,  // Assure-toi que FormsModule est bien inclus ici
+    AppComponent,   
+    LoginComponent, 
     RegisterComponent,
     ProjectsComponent,
     TaskComponent,

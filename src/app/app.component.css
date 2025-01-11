@@ -1,0 +1,81 @@
+/* Importation de la police moderne */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+/* Style général pour l'entête de l'application */
+header {
+  background-color: #5a9bff;  /* Bleu plus doux */
+  color: white;
+  padding: 20px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 500;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Style pour la barre de navigation */
+nav {
+  margin-top: 10px;
+}
+
+nav a {
+  color: white;
+  font-size: 1rem;
+  text-decoration: none;
+  margin: 0 15px;
+  transition: color 0.3s ease;
+}
+
+nav a:hover {
+  color: #f7c700; /* Couleur dorée au survol */
+}
+
+/* Style du contenu principal */
+router-outlet {
+  margin: 20px auto;
+  padding: 20px;
+  max-width: 900px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Style du footer */
+footer {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 15px 0;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+/* Style de l'application pour garantir un espacement propre */
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+/* Ajout d'un peu de responsive pour les petits écrans */
+@media (max-width: 768px) {
+  header {
+    font-size: 1.2rem;
+  }
+
+  nav a {
+    font-size: 0.9rem;
+  }
+
+  footer {
+    font-size: 0.8rem;
+  }
+
+  router-outlet {
+    margin: 15px;
+    padding: 15px;
+  }
+}

@@ -1,0 +1,49 @@
+/* project-detail.component.css */
+.project-detail-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  h1 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 15px;
+  }
+  
+  .project-description {
+    font-size: 1.2rem;
+    color: #555;
+    margin-bottom: 20px;
+  }
+  
+  .project-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  
+  .project-info div {
+    font-size: 1rem;
+    color: #333;
+  }
+  
+  .project-info strong {
+    color: #0066cc;
+  }
+  
+  .error-message {
+    margin-top: 20px;
+    color: red;
+    font-weight: bold;
+  }
+  
+  .loading-spinner {
+    font-size: 1.5rem;
+    color: #007bff;
+    text-align: center;
+  }
+  

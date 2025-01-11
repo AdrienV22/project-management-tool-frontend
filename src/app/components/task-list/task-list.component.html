@@ -1,1 +1,7 @@
-<p>Liste des tâches</p>
+<div *ngIf="tasks.length === 0">Aucune tâche à afficher.</div>
+<ul>
+  <li *ngFor="let task of tasks">
+    <h3>{{ task.name }}</h3> <!-- Remplace "name" par le nom réel de la tâche -->
+    <p>{{ task.description }}</p> <!-- Remplace "description" par la description de la tâche -->
+  </li>
+</ul>

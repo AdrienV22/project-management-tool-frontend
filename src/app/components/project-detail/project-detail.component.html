@@ -1,2 +1,21 @@
-<h1>Détails du projet</h1>
-<p>Détails du projet sélectionné.</p>
+<!-- project-detail.component.html -->
+<div class="project-detail-container" *ngIf="!loading; else loadingTemplate">
+    <h1>{{ project.name }}</h1>
+    <p class="project-description">{{ project.description }}</p>
+  
+    <div class="project-info">
+      <div><strong>Start Date:</strong> {{ project.startDate | date }}</div>
+      <div><strong>End Date:</strong> {{ project.endDate | date }}</div>
+      <div><strong>Status:</strong> {{ project.status }}</div>
+      <div><strong>Client:</strong> {{ project.client }}</div>
+    </div>
+  
+    <!-- Afficher l'erreur si un problème survient -->
+    <div *ngIf="error" class="error-message">{{ error }}</div>
+  </div>
+  
+  <!-- Template de chargement -->
+  <ng-template #loadingTemplate>
+    <div class="loading-spinner">Chargement...</div>
+  </ng-template>
+  

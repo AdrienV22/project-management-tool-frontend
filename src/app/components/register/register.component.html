@@ -1,2 +1,15 @@
 <h1>Page d'inscription</h1>
 <p>Bienvenue sur la page d'inscription.</p>
+
+<form (submit)="onSubmit()">
+  <label for="username">Nom d'utilisateur :</label>
+  <input type="text" id="username" [(ngModel)]="username" name="username" required />
+
+  <label for="email">Email :</label>
+  <input type="email" id="email" [(ngModel)]="email" name="email" required />
+
+  <label for="password">Mot de passe :</label>
+  <input type="password" id="password" [(ngModel)]="password" name="password" required />
+
+  <button type="submit">S'inscrire</button>
+</form>
