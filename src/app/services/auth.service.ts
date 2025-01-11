@@ -7,7 +7,7 @@ import { tap } from 'rxjs/operators';
   providedIn: 'root', // Service disponible dans toute l'application
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/api'; // URL de ton API backend
+  private apiUrl = 'http://localhost:8080/api/auth'; // URL de ton API backend
   private isAuthenticated: boolean = false; // État de connexion
 
   constructor(private http: HttpClient) {}
@@ -18,8 +18,18 @@ export class AuthService {
       tap((response: any) => {
         if (response.token) {
           localStorage.setItem('authToken', response.token); // Stocker le token
-          this.isAuthenticated = true;
+          this.isAuthenticated = true;  // Marquer l'utilisateur comme authentifié
         }
+      })
+    );
+  }
+
+  // Méthode pour s'inscrire
+  register(userData: { username: string; email: string; password: string; userRole: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/register`, userData).pipe(
+      tap((response: any) => {
+        // Si l'inscription réussit, on pourrait rediriger vers la page de connexion ou afficher un message
+        console.log('Utilisateur inscrit avec succès', response);
       })
     );
   }
@@ -27,11 +37,12 @@ export class AuthService {
   // Méthode pour se déconnecter
   logout(): void {
     localStorage.removeItem('authToken'); // Supprimer le token
-    this.isAuthenticated = false;
+    this.isAuthenticated = false;  // Mettre l'état d'authentification à false
   }
 
   // Vérifie si l'utilisateur est connecté
   isLoggedIn(): boolean {
+    // Vérifie d'abord l'état d'authentification local
     return this.isAuthenticated || !!localStorage.getItem('authToken');
   }
 }
