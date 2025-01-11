@@ -1,13 +1,15 @@
 import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';  // Ajouter FormsModule
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';  // Importer AuthService
+import { CommonModule } from '@angular/common';  // Import de CommonModule
+import { FormsModule } from '@angular/forms';   // Import de FormsModule
 
 @Component({
   selector: 'app-register',
+  standalone: true,
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css'],
-  imports: [FormsModule],  // Ajouter FormsModule dans imports
+  imports: [CommonModule, FormsModule],  // Ajouter CommonModule et FormsModule ici
 })
 export class RegisterComponent {
   username: string = '';
