@@ -1,36 +1,38 @@
 import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';  // Ajouter FormsModule
+import { FormsModule } from '@angular/forms'; // Ajouter FormsModule
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../services/auth.service'; // Importer AuthService
+import { CommonModule } from '@angular/common';  // Importer CommonModule
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  imports: [FormsModule],  // Ajouter FormsModule dans imports
+  imports: [FormsModule, CommonModule], // Ajouter CommonModule dans imports
 })
 export class LoginComponent {
-  username: string = '';
+  email: string = '';
   password: string = '';
+  errorMessage: string | null = null; // Gérer les erreurs de connexion
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   onSubmit() {
-    const loginData = {
-      username: this.username,
-      password: this.password
-    };
+    if (!this.email || !this.password) {
+      this.errorMessage = 'Veuillez remplir tous les champs.';
+      return;
+    }
 
-    // Utiliser directement l'URL de ton API ici (par exemple, http://localhost:8080)
-    this.http.post('http://localhost:8080/login', loginData).subscribe(
-      (response: any) => {
-        // Traiter la réponse, par exemple en stockant un token JWT
-        localStorage.setItem('authToken', response.token);
-        this.router.navigate(['/dashboard']); // Rediriger après une connexion réussie
+    // Utiliser le service AuthService pour gérer la connexion
+    this.authService.login(this.email, this.password).subscribe(
+      () => {
+        this.errorMessage = null; // Réinitialise les erreurs
+        this.router.navigate(['/dashboard']); // Rediriger après connexion
       },
       (error) => {
-        // Gérer l'erreur, afficher un message si la connexion échoue
+        // Gérer l'erreur si la connexion échoue
         console.error('Erreur lors de la connexion', error);
+        this.errorMessage = 'Échec de la connexion. Vérifiez vos identifiants.';
       }
     );
   }
