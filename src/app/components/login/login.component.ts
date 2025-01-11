@@ -1,14 +1,14 @@
 import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms'; // Ajouter FormsModule
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service'; // Importer AuthService
+import { AuthService } from '../../services/auth.service';  // Assure-toi d'importer AuthService
 import { CommonModule } from '@angular/common';  // Importer CommonModule
+import { FormsModule } from '@angular/forms';  // Ajouter FormsModule
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  imports: [FormsModule, CommonModule], // Ajouter CommonModule dans imports
+  imports: [FormsModule, CommonModule],  // Ajouter CommonModule dans imports
 })
 export class LoginComponent {
   email: string = '';
@@ -25,9 +25,11 @@ export class LoginComponent {
 
     // Utiliser le service AuthService pour gérer la connexion
     this.authService.login(this.email, this.password).subscribe(
-      () => {
-        this.errorMessage = null; // Réinitialise les erreurs
-        this.router.navigate(['/dashboard']); // Rediriger après connexion
+      (response) => {
+        this.errorMessage = null;  // Réinitialiser les erreurs
+        // Si la connexion réussie, tu peux aussi stocker un token ou autre, si nécessaire
+        localStorage.setItem('authToken', response.token); // Exemple de stockage du token
+        this.router.navigate(['/projects']);  // Rediriger vers la page des projets
       },
       (error) => {
         // Gérer l'erreur si la connexion échoue
