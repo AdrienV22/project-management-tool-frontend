@@ -17,9 +17,9 @@
   <div>
     <label for="userRole">Rôle:</label>
     <select id="userRole" [(ngModel)]="userRole" name="userRole" required>
-      <option value="MEMBRE">Membre</option>
-      <option value="ADMIN">Admin</option>
-      <option value="OBSERVATEUR">Observateur</option>
+      <option [ngValue]="0">Admin</option>
+      <option [ngValue]="1">Membre</option>
+      <option [ngValue]="2">Observateur</option>
     </select>
   </div>
 

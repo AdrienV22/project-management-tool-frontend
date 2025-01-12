@@ -15,7 +15,7 @@ export class RegisterComponent {
   username: string = '';
   email: string = '';
   password: string = '';
-  userRole: string = 'MEMBRE'; // Par défaut, rôle "Membre"
+  userRole: number = 1; // Par défaut, rôle "Membre"
   errorMessage: string | null = null;
 
   constructor(private authService: AuthService, private router: Router) {}
@@ -38,14 +38,23 @@ export class RegisterComponent {
     // Utiliser le service AuthService pour l'inscription
     this.authService.register(registerData).subscribe(
       (response) => {
-        this.errorMessage = null; // Réinitialiser les erreurs
-        console.log('Utilisateur inscrit avec succès', response);
-        this.router.navigate(['/login']);  // Rediriger vers la page de connexion
+        // Vérification que la réponse est bien un succès
+        if (response && response.message === 'User registered successfully!') {
+          this.errorMessage = null; // Réinitialiser les erreurs
+          console.log('Utilisateur inscrit avec succès', response);
+          this.router.navigate(['/login']);  // Rediriger vers la page de connexion
+        } else {
+          this.errorMessage = 'Une erreur est survenue, veuillez réessayer.';
+        }
       },
       (error) => {
         // Gérer l'erreur si l'inscription échoue
         console.error('Erreur lors de l\'inscription', error);
-        this.errorMessage = 'Une erreur est survenue, veuillez réessayer.';
+        if (error.status === 400 || error.status === 409) {
+          this.errorMessage = error.error;  // Utiliser le message d'erreur renvoyé par le backend
+        } else {
+          this.errorMessage = 'Une erreur est survenue, veuillez réessayer.';
+        }
       }
     );
   }

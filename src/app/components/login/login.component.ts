@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';  // Ajouter FormsModule
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  imports: [FormsModule, CommonModule],  // Ajouter CommonModule dans imports
+  imports: [FormsModule, CommonModule],  
 })
 export class LoginComponent {
   email: string = '';
@@ -25,16 +25,23 @@ export class LoginComponent {
 
     // Utiliser le service AuthService pour gérer la connexion
     this.authService.login(this.email, this.password).subscribe(
-      (response) => {
+      (response: any) => {
         this.errorMessage = null;  // Réinitialiser les erreurs
-        // Si la connexion réussie, tu peux aussi stocker un token ou autre, si nécessaire
-        localStorage.setItem('authToken', response.token); // Exemple de stockage du token
+        // Si la connexion réussie, on redirige vers la page des projets
         this.router.navigate(['/projects']);  // Rediriger vers la page des projets
       },
       (error) => {
         // Gérer l'erreur si la connexion échoue
         console.error('Erreur lors de la connexion', error);
-        this.errorMessage = 'Échec de la connexion. Vérifiez vos identifiants.';
+
+        // Vérifier le code d'erreur HTTP et afficher un message spécifique
+        if (error.status === 404) {
+          this.errorMessage = 'Utilisateur non trouvé.';
+        } else if (error.status === 401) {
+          this.errorMessage = 'Mot de passe incorrect.';
+        } else {
+          this.errorMessage = 'Erreur inconnue. Veuillez réessayer.';
+        }
       }
     );
   }

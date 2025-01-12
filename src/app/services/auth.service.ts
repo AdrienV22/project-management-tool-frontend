@@ -25,7 +25,7 @@ export class AuthService {
   }
 
   // Méthode pour s'inscrire
-  register(userData: { username: string; email: string; password: string; userRole: string }): Observable<any> {
+  register(userData: { username: string; email: string; password: string; userRole: number }): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, userData).pipe(
       tap((response: any) => {
         // Si l'inscription réussit, on pourrait rediriger vers la page de connexion ou afficher un message
