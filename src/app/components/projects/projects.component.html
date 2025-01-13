@@ -1,21 +1,32 @@
-<!-- projects.component.html -->
 <div class="projects-container">
-    <h1>Projets</h1>
-  
-    <div class="add-project-section">
-      <button class="add-project-btn">Ajouter un projet</button>
-    </div>
-  
-    <ul class="projects-list">
-      <li class="project-item" *ngFor="let project of projects">
-        <div class="project-info">
-          <h3>{{ project.name }}</h3>
-          <p>{{ project.description }}</p>
-        </div>
-        <div class="project-actions">
-          <button class="view-project-btn" (click)="viewProjectDetails(project.id)">Voir les détails</button>
-        </div>
-      </li>
-    </ul>
+  <h1>Vos projets</h1>
+
+  <div class="add-project-section">
+    <button class="add-project-btn" (click)="addProject()">Ajouter un projet</button>
   </div>
-  
+
+  <!-- Affichage des erreurs -->
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Liste des projets -->
+  <ul class="projects-list" *ngIf="projects.length > 0; else noProjects">
+    <li class="project-item" *ngFor="let project of projects">
+      <div class="project-info">
+        <h3>{{ project.name }}</h3>
+        <p>{{ project.description }}</p>
+      </div>
+      <div class="project-actions">
+        <button class="view-project-btn" (click)="viewProjectDetails(project.id)">
+          Voir les détails
+        </button>
+      </div>
+    </li>
+  </ul>
+
+  <!-- Message si aucun projet n'est trouvé -->
+  <ng-template #noProjects>
+    <p>Aucun projet trouvé. Cliquez sur "Ajouter un projet" pour en créer un nouveau.</p>
+  </ng-template>
+</div>

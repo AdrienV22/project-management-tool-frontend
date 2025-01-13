@@ -7,6 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class AuthService {
   private apiUrl = 'http://localhost:8080/api/auth'; // URL de l'API backend
+  private projectsApiUrl = 'http://localhost:8080/api/projects'; // URL pour récupérer les projets
   private isAuthenticated: boolean = false; // État de connexion utilisateur
 
   constructor(private http: HttpClient) {}
@@ -22,9 +23,8 @@ export class AuthService {
   }
 
   // Méthode pour récupérer les projets de l'utilisateur
-  getUserProjects(email: string): Observable<any> {
-    const projectsUrl = 'http://localhost:8080/api/projects'; // URL pour récupérer les projets
-    return this.http.get(`${projectsUrl}?email=${email}`);
+  getUserProjects(email: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.projectsApiUrl}?email=${email}`);
   }
 
   // Méthode pour se déconnecter

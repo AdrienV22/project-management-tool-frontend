@@ -1,26 +1,54 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';  // Importer Router
-import { CommonModule } from '@angular/common'; // Ajoute ceci en haut du fichier
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service'; // Assurez-vous que le chemin est correct
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-projects',
   templateUrl: './projects.component.html',
   styleUrls: ['./projects.component.css'],
-  imports: [CommonModule] // Si ton composant est standalone, ajoute le ici aussi
+  imports: [CommonModule],
 })
-export class ProjectsComponent {
-  // Exemple de données de projet
-  projects = [
-    { id: 1, name: 'Projet 1', description: 'Description du projet 1' },
-    { id: 2, name: 'Projet 2', description: 'Description du projet 2' },
-    { id: 3, name: 'Projet 3', description: 'Description du projet 3' },
-  ];
+export class ProjectsComponent implements OnInit {
+  projects: any[] = []; // Les projets récupérés dynamiquement
+  errorMessage: string | null = null;
 
-  constructor(private router: Router) {}  // Injection du Router
+  constructor(private authService: AuthService, private router: Router) {}
 
-  // Méthode de redirection vers la page de détails du projet
+  ngOnInit() {
+    this.loadProjects();
+  }
+
+  loadProjects() {
+    // Utilisation du service AuthService pour récupérer l'email
+    const email = this.authService.getLoggedInUserEmail();
+
+    if (!email) {
+      this.errorMessage = 'Utilisateur non connecté. Veuillez vous reconnecter.';
+      this.router.navigate(['/login']); // Redirection vers la page de connexion
+      return;
+    }
+
+    // Appel à l'API pour récupérer les projets
+    this.authService.getUserProjects(email).subscribe(
+      (projects: any[]) => {
+        this.projects = projects || []; // Assurez-vous que projects est toujours un tableau
+        if (this.projects.length === 0) {
+          this.errorMessage = 'Aucun projet trouvé.';
+        }
+      },
+      (error) => {
+        console.error('Erreur lors de la récupération des projets :', error);
+        this.errorMessage = 'Impossible de charger vos projets.';
+      }
+    );
+  }
+
   viewProjectDetails(projectId: number) {
-    // Corrige le chemin vers la bonne route
-    this.router.navigate(['/projects', projectId]);  // Rediriger vers /projects/:id
+    this.router.navigate(['/projects', projectId]);
+  }
+
+  addProject() {
+    this.router.navigate(['/projects/new']);
   }
 }

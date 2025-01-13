@@ -24,26 +24,17 @@ export class LoginComponent {
     }
 
     this.authService.login(this.email, this.password).subscribe(
-      () => {
+      (response: any) => {
         // Sauvegarde de l'état de connexion
         this.authService.setLoggedIn(this.email);
 
-        // Récupération des projets et redirection
-        this.authService.getUserProjects(this.email).subscribe(
-          (projects) => {
-            localStorage.setItem('userProjects', JSON.stringify(projects)); // Sauvegarde des projets
-            this.router.navigate(['/projects']); // Redirection vers la page des projets
-          },
-          (error) => {
-            console.error('Erreur lors de la récupération des projets:', error);
-            this.errorMessage = 'Impossible de récupérer vos projets.';
-          }
-        );
+        // Redirection vers la page des projets
+        this.router.navigate(['/projects']);
       },
       (error) => {
         console.error('Erreur lors de la connexion:', error);
 
-        // Vérification des types d'erreurs pour afficher un message approprié
+        // Gestion des erreurs avec des messages clairs
         if (error.status === 404) {
           this.errorMessage = 'Utilisateur non trouvé.';
         } else if (error.status === 401) {
