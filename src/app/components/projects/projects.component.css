@@ -1,83 +1,107 @@
-/* Page des projets - projects.component.css */
+/* Importation de la police moderne */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 
+/* Police de base pour la page */
 body {
   font-family: 'Roboto', sans-serif;
-  background-color: #f7f7f7;
+  background-color: #f0f2f5; /* Arrière-plan léger */
   color: #333;
-}
-
-.projects-container {
-  background-color: #fff;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-  margin: 20px auto;
-  max-width: 1200px;
-}
-
-h1 {
-  font-size: 2rem;
-  color: #333;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.add-project-section {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.add-project-btn {
-  padding: 12px 25px;
-  background-color: #66afe9;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 1.1rem;
-  cursor: pointer;
-}
-
-.add-project-btn:hover {
-  background-color: #4a8fe5;
-}
-
-.projects-list {
-  list-style-type: none;
+  margin: 0;
   padding: 0;
 }
 
-.project-item {
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  margin-bottom: 15px;
-  padding: 20px;
-  border-radius: 5px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* Conteneur de la section de création de projet */
+.project-form-container {
+  background-color: #fff;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: 50px auto;
 }
 
-.project-item:hover {
-  background-color: #f1f1f1;
-}
-
-.project-info h3 {
-  font-size: 1.4rem;
+h1 {
+  text-align: center;
+  font-size: 2rem;
   color: #333;
+  margin-bottom: 20px;
 }
 
-.project-actions button {
-  padding: 8px 15px;
-  background-color: #5a9bff;
+label {
+  font-weight: 500;
+  margin-bottom: 10px;
+  display: block;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #66afe9;
+  outline: none;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* Bouton d'envoi */
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #5a9bff; /* Bleu doux */
   color: white;
   border: none;
   border-radius: 4px;
-  font-size: 1rem;
+  font-size: 1.1rem;
   cursor: pointer;
-  margin-left: 10px;
+  transition: background-color 0.3s ease;
 }
 
-.project-actions button:hover {
+button:hover {
   background-color: #4a8fe5;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Message d'erreur */
+.error-message {
+  color: #e74c3c;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Conteneur pour le bouton de retour */
+.return-btn-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.return-btn {
+  background-color: transparent;
+  color: #5a9bff;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.return-btn:hover {
+  color: #4a8fe5;
 }

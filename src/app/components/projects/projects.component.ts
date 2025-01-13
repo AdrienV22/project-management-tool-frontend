@@ -1,38 +1,44 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service'; // Assurez-vous que le chemin est correct
+import { AuthService } from '../../services/auth.service';
+import { ProjectService } from '../../services/project.service';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-projects',
   templateUrl: './projects.component.html',
   styleUrls: ['./projects.component.css'],
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
 })
 export class ProjectsComponent implements OnInit {
-  projects: any[] = []; // Les projets récupérés dynamiquement
+  projects: any[] = [];
   errorMessage: string | null = null;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  showAddProjectForm: boolean = false;
+  newProject: any = {
+    name: '',
+    description: '',
+    startDate: '',
+    endDate: '',
+    status: 'pending',
+    client: ''
+  };
+
+  constructor(
+    private authService: AuthService,
+    private projectService: ProjectService,
+    private router: Router  // Injection du service Router
+  ) {}
 
   ngOnInit() {
     this.loadProjects();
   }
 
   loadProjects() {
-    // Utilisation du service AuthService pour récupérer l'email
-    const email = this.authService.getLoggedInUserEmail();
-
-    if (!email) {
-      this.errorMessage = 'Utilisateur non connecté. Veuillez vous reconnecter.';
-      this.router.navigate(['/login']); // Redirection vers la page de connexion
-      return;
-    }
-
-    // Appel à l'API pour récupérer les projets
-    this.authService.getUserProjects(email).subscribe(
+    this.projectService.getProjects().subscribe(
       (projects: any[]) => {
-        this.projects = projects || []; // Assurez-vous que projects est toujours un tableau
+        this.projects = projects || [];
         if (this.projects.length === 0) {
           this.errorMessage = 'Aucun projet trouvé.';
         }
@@ -44,11 +50,42 @@ export class ProjectsComponent implements OnInit {
     );
   }
 
-  viewProjectDetails(projectId: number) {
-    this.router.navigate(['/projects', projectId]);
+  toggleAddProjectForm() {
+    this.showAddProjectForm = !this.showAddProjectForm;
   }
 
-  addProject() {
-    this.router.navigate(['/projects/new']);
+  onSubmit() {
+    if (!this.newProject.name || !this.newProject.description) {
+      this.errorMessage = 'Veuillez remplir tous les champs obligatoires.';
+      return;
+    }
+
+    this.projectService.addProject(this.newProject).subscribe(
+      (response) => {
+        console.log('Projet ajouté avec succès:', response);
+        this.projects.push(response);
+        this.toggleAddProjectForm();
+        this.resetNewProject();
+      },
+      (error) => {
+        console.error('Erreur lors de l\'ajout du projet:', error);
+        this.errorMessage = 'Impossible d\'ajouter le projet.';
+      }
+    );
+  }
+
+  resetNewProject() {
+    this.newProject = {
+      name: '',
+      description: '',
+      startDate: '',
+      endDate: '',
+      status: 'pending',
+      client: ''
+    };
+  }
+
+  viewProjectDetails(projectId: number) {
+    this.router.navigate(['/projects', projectId]);
   }
 }

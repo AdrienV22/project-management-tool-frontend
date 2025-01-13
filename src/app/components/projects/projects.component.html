@@ -2,7 +2,85 @@
   <h1>Vos projets</h1>
 
   <div class="add-project-section">
-    <button class="add-project-btn" (click)="addProject()">Ajouter un projet</button>
+    <!-- Bouton pour afficher/masquer le formulaire d'ajout de projet -->
+    <button class="add-project-btn" (click)="toggleAddProjectForm()">
+      {{ showAddProjectForm ? 'Annuler' : 'Ajouter un projet' }}
+    </button>
+  </div>
+
+  <!-- Formulaire d'ajout de projet (affiché conditionnellement) -->
+  <div class="add-project-form" *ngIf="showAddProjectForm">
+    <form (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="name">Nom du projet:</label>
+        <input
+          type="text"
+          id="name"
+          [(ngModel)]="newProject.name"
+          name="name"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description:</label>
+        <textarea
+          id="description"
+          [(ngModel)]="newProject.description"
+          name="description"
+          required
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="startDate">Date de début:</label>
+        <input
+          type="date"
+          id="startDate"
+          [(ngModel)]="newProject.startDate"
+          name="startDate"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="endDate">Date de fin:</label>
+        <input
+          type="date"
+          id="endDate"
+          [(ngModel)]="newProject.endDate"
+          name="endDate"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="status">Statut:</label>
+        <select
+          id="status"
+          [(ngModel)]="newProject.status"
+          name="status"
+          required
+        >
+          <option value="pending">En attente</option>
+          <option value="in_progress">En cours</option>
+          <option value="completed">Terminé</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="client">Client:</label>
+        <input
+          type="text"
+          id="client"
+          [(ngModel)]="newProject.client"
+          name="client"
+          required
+        />
+      </div>
+
+      <button type="submit" class="submit-btn">Ajouter le projet</button>
+    </form>
   </div>
 
   <!-- Affichage des erreurs -->
