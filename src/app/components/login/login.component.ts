@@ -1,19 +1,19 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service';  // Assure-toi d'importer AuthService
-import { CommonModule } from '@angular/common';  // Importer CommonModule
-import { FormsModule } from '@angular/forms';  // Ajouter FormsModule
+import { AuthService } from '../../services/auth.service';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  imports: [FormsModule, CommonModule],  
+  imports: [FormsModule, CommonModule],
 })
 export class LoginComponent {
   email: string = '';
   password: string = '';
-  errorMessage: string | null = null; // Gérer les erreurs de connexion
+  errorMessage: string | null = null;
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -23,18 +23,27 @@ export class LoginComponent {
       return;
     }
 
-    // Utiliser le service AuthService pour gérer la connexion
     this.authService.login(this.email, this.password).subscribe(
-      (response: any) => {
-        this.errorMessage = null;  // Réinitialiser les erreurs
-        // Si la connexion réussie, on redirige vers la page des projets
-        this.router.navigate(['/projects']);  // Rediriger vers la page des projets
+      () => {
+        // Sauvegarde de l'état de connexion
+        this.authService.setLoggedIn(this.email);
+
+        // Récupération des projets et redirection
+        this.authService.getUserProjects(this.email).subscribe(
+          (projects) => {
+            localStorage.setItem('userProjects', JSON.stringify(projects)); // Sauvegarde des projets
+            this.router.navigate(['/projects']); // Redirection vers la page des projets
+          },
+          (error) => {
+            console.error('Erreur lors de la récupération des projets:', error);
+            this.errorMessage = 'Impossible de récupérer vos projets.';
+          }
+        );
       },
       (error) => {
-        // Gérer l'erreur si la connexion échoue
-        console.error('Erreur lors de la connexion', error);
+        console.error('Erreur lors de la connexion:', error);
 
-        // Vérifier le code d'erreur HTTP et afficher un message spécifique
+        // Vérification des types d'erreurs pour afficher un message approprié
         if (error.status === 404) {
           this.errorMessage = 'Utilisateur non trouvé.';
         } else if (error.status === 401) {
