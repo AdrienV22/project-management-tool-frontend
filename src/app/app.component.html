@@ -1,13 +1,10 @@
-<!-- src/app/app.component.html -->
-
 <header>
   <h1>Project Management Tool - Projet ISCOD</h1>
   <nav>
-    <a routerLink="/home">Accueil</a> |
-    <a routerLink="/tasks">Tâches</a> |
-    <a routerLink="/login">Connexion</a> |
-    <a routerLink="/register">Inscription</a> |
-    <a routerLink="/projects">Projets</a>
+    <a routerLink="/login" *ngIf="!(isLoggedIn$ | async)">Connexion</a> |
+    <a routerLink="/register" *ngIf="!(isLoggedIn$ | async)">Inscription</a> |
+    <a routerLink="/projects">Projets</a> |
+    <button *ngIf="isLoggedIn$ | async" (click)="logout()" class="logout-btn">Déconnexion</button>
   </nav>
 </header>
 

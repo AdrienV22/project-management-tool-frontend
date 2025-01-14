@@ -28,7 +28,7 @@ export class ProjectsComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private projectService: ProjectService,
-    private router: Router  // Injection du service Router
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -87,5 +87,10 @@ export class ProjectsComponent implements OnInit {
 
   viewProjectDetails(projectId: number) {
     this.router.navigate(['/projects', projectId]);
+  }
+
+  logout() {
+    this.authService.logout(); // Appelle la méthode logout d'AuthService
+    this.router.navigate(['/login']); // Redirige vers la page de connexion
   }
 }
