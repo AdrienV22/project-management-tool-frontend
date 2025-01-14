@@ -13,17 +13,38 @@ header {
 }
 
 /* Style pour la barre de navigation */
+/* Navbar */
 nav {
-  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 nav a {
-  color: white;
-  font-size: 1rem;
+  margin: 0 10px; /* Réduit la distance entre les liens */
   text-decoration: none;
-  margin: 0 15px;
-  transition: color 0.3s ease;
+  color: #ffffff;
 }
+
+nav button {
+  margin: 0 10px; /* Même espacement pour le bouton de déconnexion */
+}
+
+nav a:not(:last-child) {
+  margin-right: 10px; /* Ajoute un petit espace entre chaque lien */
+}
+
+/* Optionnel : styliser les séparateurs " | " */
+nav a::after {
+  content: '|';
+  margin: 0 10px;
+  color: #ffffff;
+}
+
+nav a:last-child::after {
+  content: ''; /* Retirer le séparateur après le dernier lien */
+}
+
 
 nav a:hover {
   color: #f7c700; /* Couleur dorée au survol */

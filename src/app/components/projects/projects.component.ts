@@ -60,6 +60,20 @@ export class ProjectsComponent implements OnInit {
       return;
     }
 
+    // Formatage des dates au format yyyy-MM-dd
+    const startDate = new Date(this.newProject.startDate);
+    const endDate = new Date(this.newProject.endDate);
+
+    // Convertir les dates au format ISO (yyyy-MM-dd)
+    const formattedStartDate = startDate.toISOString().split('T')[0];  // Partie yyyy-MM-dd
+    const formattedEndDate = endDate.toISOString().split('T')[0];
+
+    // Mettre à jour les dates dans newProject
+    this.newProject.startDate = formattedStartDate;
+    this.newProject.endDate = formattedEndDate;
+
+    console.log('Données du projet:', this.newProject);  // Afficher les données envoyées
+
     this.projectService.addProject(this.newProject).subscribe(
       (response) => {
         console.log('Projet ajouté avec succès:', response);

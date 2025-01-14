@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ProjectService {
-  private apiUrl = 'http://localhost:8080/api/projects'; // Remplace par l'URL de ton backend
+  private apiUrl = 'http://localhost:8080/api/projects'; 
 
   constructor(private http: HttpClient) {}
 
