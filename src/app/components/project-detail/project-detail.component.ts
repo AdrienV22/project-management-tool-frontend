@@ -1,21 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProjectService } from '../../services/project.service';
-import { CommonModule } from '@angular/common'; // Pour *ngIf et autres directives Angular
+import { CommonModule } from '@angular/common'; // Pour *ngIf
 import { FormsModule } from '@angular/forms'; // Pour [(ngModel)]
 
 @Component({
   selector: 'app-project-detail',
   templateUrl: './project-detail.component.html',
   styleUrls: ['./project-detail.component.css'],
-  standalone: true, // Si votre composant est standalone
-  imports: [CommonModule, FormsModule], // Ajout des modules requis
+  standalone: true, 
+  imports: [CommonModule, FormsModule], 
 })
 export class ProjectDetailComponent implements OnInit {
   project: any = {}; // Contient les détails du projet
   loading: boolean = true; // Indique si les données sont en cours de chargement
-  error: string | null = null; // Message d'erreur à afficher
-  isEditing: boolean = false; // Indique si l'utilisateur est en mode édition
+  error: string | null = null; 
+  isEditing: boolean = false; // Indique si l'utilisateur est en mode édition ou non
 
   constructor(
     private route: ActivatedRoute, // Pour récupérer les paramètres de la route
@@ -59,7 +59,16 @@ export class ProjectDetailComponent implements OnInit {
   // Met à jour le projet en appelant l'API
   updateProject(): void {
     this.loading = true; // Affiche un loader pendant la mise à jour
-    this.projectService.updateProject(this.project.id, this.project).subscribe(
+
+    // Vérifie que les données à soumettre sont correctes
+    const updatedProject = {
+      ...this.project, // Gardons toutes les propriétés existantes
+      statut: this.project.statut || 'Non défini', // Si statut est vide, on met 'Non défini'
+      clientEmail: this.project.clientEmail || 'Inconnu', // Utilise 'clientEmail' au lieu de 'client'
+    };
+    
+    // Met à jour le projet via le service
+    this.projectService.updateProject(this.project.id, updatedProject).subscribe(
       (response) => {
         this.isEditing = false; // Désactive le mode édition
         this.fetchProjectDetails(this.project.id); // Recharge les données à jour
