@@ -8,7 +8,8 @@
       <div><strong>Date de début :</strong> {{ project.startDate | date }}</div>
       <div><strong>Date de fin :</strong> {{ project.endDate | date }}</div>
       <div><strong>Statut :</strong> {{ project.status }}</div>
-      <div><strong>Client :</strong> {{ project.client }}</div>
+      <!-- Mise à jour pour afficher le chef de projet en gras -->
+      <div><strong>Chef de projet :</strong> <strong>{{ project.client }}</strong></div>
     </div>
 
     <!-- Boutons d'action -->
@@ -81,7 +82,7 @@
         </select>
       </div>
       <div class="form-group">
-        <label for="client">Client :</label>
+        <label for="client">Chef de projet :</label>
         <input 
           type="text" 
           id="client" 
