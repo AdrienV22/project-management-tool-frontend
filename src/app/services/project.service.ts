@@ -35,3 +35,4 @@ export class ProjectService {
     return this.http.delete<any>(`${this.apiUrl}/${projectId}`);
   }
 }
+
