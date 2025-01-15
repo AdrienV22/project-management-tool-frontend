@@ -6,31 +6,31 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ProjectService {
-  private apiUrl = 'http://localhost:8080/api/projects'; 
+  private apiUrl = 'http://localhost:8080/api/projects';  // Ton URL de base pour l'API
 
   constructor(private http: HttpClient) {}
 
-  // Méthode pour récupérer les projets
+  // Récupérer tous les projets
   getProjects(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}`);
   }
 
-  // Méthode pour ajouter un projet
+  // Ajouter un projet
   addProject(project: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}`, project);
   }
 
-  // Méthode pour récupérer les détails d'un projet spécifique
+  // Récupérer un projet spécifique
   getProjectById(projectId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${projectId}`);
   }
 
-  // Méthode pour mettre à jour un projet
+  // Mettre à jour un projet
   updateProject(projectId: number, updatedData: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/${projectId}`, updatedData);
   }
 
-  // Méthode pour supprimer un projet
+  // Supprimer un projet
   deleteProject(projectId: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${projectId}`);
   }

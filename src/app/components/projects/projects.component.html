@@ -1,5 +1,4 @@
 <div class="projects-container">
-
   <h1>Vos projets</h1>
 
   <div class="add-project-section">
@@ -96,6 +95,8 @@
         <h3>{{ project.name }}</h3>
         <p>{{ project.description }}</p>
       </div>
+
+      <!-- Bouton pour voir les détails -->
       <div class="project-actions">
         <button class="view-project-btn" (click)="viewProjectDetails(project.id)">
           Voir les détails

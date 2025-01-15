@@ -1,21 +1,119 @@
-<!-- project-detail.component.html -->
 <div class="project-detail-container" *ngIf="!loading; else loadingTemplate">
-    <h1>{{ project.name }}</h1>
-    <p class="project-description">{{ project.description }}</p>
-  
+  <h1>Détails du projet : {{ project.name }}</h1>
+  <p class="project-description">{{ project.description }}</p>
+
+  <!-- Affichage des détails du projet -->
+  <form *ngIf="!isEditing; else editFormTemplate">
     <div class="project-info">
-      <div><strong>Start Date:</strong> {{ project.startDate | date }}</div>
-      <div><strong>End Date:</strong> {{ project.endDate | date }}</div>
-      <div><strong>Status:</strong> {{ project.status }}</div>
-      <div><strong>Client:</strong> {{ project.client }}</div>
+      <div><strong>Date de début :</strong> {{ project.startDate | date }}</div>
+      <div><strong>Date de fin :</strong> {{ project.endDate | date }}</div>
+      <div><strong>Statut :</strong> {{ project.status }}</div>
+      <div><strong>Client :</strong> {{ project.client }}</div>
     </div>
-  
-    <!-- Afficher l'erreur si un problème survient -->
-    <div *ngIf="error" class="error-message">{{ error }}</div>
-  </div>
-  
-  <!-- Template de chargement -->
-  <ng-template #loadingTemplate>
-    <div class="loading-spinner">Chargement...</div>
+
+    <!-- Boutons d'action -->
+    <div class="button-group">
+      <button 
+        type="button" 
+        (click)="enableEditMode()" 
+        class="edit-button" 
+        aria-label="Modifier le projet">
+        Modifier
+      </button>
+      <button 
+        type="button" 
+        (click)="confirmDelete()" 
+        class="delete-button" 
+        aria-label="Supprimer le projet">
+        Supprimer
+      </button>
+    </div>
+  </form>
+
+  <!-- Formulaire de modification -->
+  <ng-template #editFormTemplate>
+    <form (ngSubmit)="updateProject()">
+      <div class="form-group">
+        <label for="name">Nom du projet :</label>
+        <input 
+          type="text" 
+          id="name" 
+          [(ngModel)]="project.name" 
+          name="name" 
+          required />
+      </div>
+      <div class="form-group">
+        <label for="description">Description :</label>
+        <textarea 
+          id="description" 
+          [(ngModel)]="project.description" 
+          name="description" 
+          required>
+        </textarea>
+      </div>
+      <div class="form-group">
+        <label for="startDate">Date de début :</label>
+        <input 
+          type="date" 
+          id="startDate" 
+          [(ngModel)]="project.startDate" 
+          name="startDate" 
+          required />
+      </div>
+      <div class="form-group">
+        <label for="endDate">Date de fin :</label>
+        <input 
+          type="date" 
+          id="endDate" 
+          [(ngModel)]="project.endDate" 
+          name="endDate" 
+          required />
+      </div>
+      <div class="form-group">
+        <label for="status">Statut :</label>
+        <select 
+          id="status" 
+          [(ngModel)]="project.status" 
+          name="status">
+          <option value="pending">En attente</option>
+          <option value="in_progress">En cours</option>
+          <option value="completed">Terminé</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="client">Client :</label>
+        <input 
+          type="text" 
+          id="client" 
+          [(ngModel)]="project.client" 
+          name="client" 
+          required />
+      </div>
+
+      <!-- Boutons pour le mode édition -->
+      <div class="button-group">
+        <button 
+          type="submit" 
+          class="save-btn" 
+          aria-label="Enregistrer les modifications">
+          Enregistrer
+        </button>
+        <button 
+          type="button" 
+          (click)="cancelEditMode()" 
+          class="cancel-btn" 
+          aria-label="Annuler les modifications">
+          Annuler
+        </button>
+      </div>
+    </form>
   </ng-template>
-  
+
+  <!-- Affichage des erreurs -->
+  <div *ngIf="error" class="error-message">{{ error }}</div>
+</div>
+
+<!-- Template de chargement -->
+<ng-template #loadingTemplate>
+  <div class="loading-spinner">Chargement...</div>
+</ng-template>

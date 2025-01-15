@@ -35,12 +35,15 @@ export class ProjectsComponent implements OnInit {
     this.loadProjects();
   }
 
+  // Récupérer la liste des projets
   loadProjects() {
     this.projectService.getProjects().subscribe(
       (projects: any[]) => {
         this.projects = projects || [];
         if (this.projects.length === 0) {
           this.errorMessage = 'Aucun projet trouvé.';
+        } else {
+          this.errorMessage = null; // Réinitialiser l'erreur si des projets sont trouvés
         }
       },
       (error) => {
@@ -50,10 +53,12 @@ export class ProjectsComponent implements OnInit {
     );
   }
 
+  // Basculer l'affichage du formulaire d'ajout de projet
   toggleAddProjectForm() {
     this.showAddProjectForm = !this.showAddProjectForm;
   }
 
+  // Soumettre un projet (ajouter un nouveau projet)
   onSubmit() {
     if (!this.newProject.name || !this.newProject.description) {
       this.errorMessage = 'Veuillez remplir tous les champs obligatoires.';
@@ -65,14 +70,14 @@ export class ProjectsComponent implements OnInit {
     const endDate = new Date(this.newProject.endDate);
 
     // Convertir les dates au format ISO (yyyy-MM-dd)
-    const formattedStartDate = startDate.toISOString().split('T')[0];  // Partie yyyy-MM-dd
+    const formattedStartDate = startDate.toISOString().split('T')[0]; // Partie yyyy-MM-dd
     const formattedEndDate = endDate.toISOString().split('T')[0];
 
     // Mettre à jour les dates dans newProject
     this.newProject.startDate = formattedStartDate;
     this.newProject.endDate = formattedEndDate;
 
-    console.log('Données du projet:', this.newProject);  // Afficher les données envoyées
+    console.log('Données du projet:', this.newProject); // Afficher les données envoyées
 
     this.projectService.addProject(this.newProject).subscribe(
       (response) => {
@@ -88,6 +93,7 @@ export class ProjectsComponent implements OnInit {
     );
   }
 
+  // Réinitialiser le formulaire du nouveau projet
   resetNewProject() {
     this.newProject = {
       name: '',
@@ -99,10 +105,12 @@ export class ProjectsComponent implements OnInit {
     };
   }
 
+  // Voir les détails d'un projet
   viewProjectDetails(projectId: number) {
     this.router.navigate(['/projects', projectId]);
   }
 
+  // Déconnexion de l'utilisateur
   logout() {
     this.authService.logout(); // Appelle la méthode logout d'AuthService
     this.router.navigate(['/login']); // Redirige vers la page de connexion
