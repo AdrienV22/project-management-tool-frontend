@@ -16,12 +16,16 @@ import { FormsModule } from '@angular/forms';  // Nécessaire pour ngModel
 export class TaskComponent implements OnInit {
 
   tasks: Task[] = [];  // Tableau pour stocker les tâches
+
+  // Initialisation de la tâche avec toutes les propriétés requises
   task: Task = {
-    id: 0,
+    id: 0, // Initialement 0 (sera généré par le backend lors de la création)
     title: '',
     description: '',
-    dueDate: '',
-    status: 'New',
+    dueDate: '', // Assure-toi que le format correspond au backend (e.g., 'YYYY-MM-DD')
+    status: 'New', // Statut par défaut
+    priority: 'MOYENNE', // Valeur par défaut pour la priorité
+    targetUserId: 1 // Exemple d'ID utilisateur cible par défaut
   };
 
   constructor(private taskService: TaskService, private router: Router) { }
@@ -41,17 +45,36 @@ export class TaskComponent implements OnInit {
 
   // Méthode pour soumettre le formulaire et créer une tâche
   onSubmit(): void {
+    // Validation simple avant l'envoi
+    if (!this.task.title || !this.task.description) {
+      console.error('Le titre et la description sont obligatoires.');
+      return;
+    }
+
     this.taskService.createTask(this.task).subscribe(
       (response) => {
         console.log('Tâche créée avec succès', response);
         // Ajoute la tâche créée à la liste des tâches
         this.tasks.push(response);
         // Réinitialise le formulaire
-        this.task = { id: 0, title: '', description: '', dueDate: '', status: 'New' };
+        this.resetTaskForm();
       },
       (error) => {
         console.error('Erreur lors de la création de la tâche', error);
       }
     );
+  }
+
+  // Méthode pour réinitialiser le formulaire après la création
+  resetTaskForm(): void {
+    this.task = {
+      id: 0,
+      title: '',
+      description: '',
+      dueDate: '',
+      status: 'New',
+      priority: 'MOYENNE',
+      targetUserId: 1
+    };
   }
 }

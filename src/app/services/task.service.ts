@@ -4,13 +4,15 @@ import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 
-// Définir un type Task
+// Définir un type Task avec les propriétés du backend
 export interface Task {
-  id: number;
+  id?: number; // ID facultatif pour la création
   title: string;
   description: string;
   dueDate: string;  
   status: string;   
+  priority: 'HAUTE' | 'MOYENNE' | 'BASSE'; // Priorités définies
+  targetUserId: number;
 }
 
 @Injectable({
