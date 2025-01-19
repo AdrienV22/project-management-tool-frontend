@@ -53,7 +53,6 @@ export class ProjectsComponent implements OnInit {
       }
     );
   }
-  
 
   toggleAddProjectForm() {
     this.showAddProjectForm = !this.showAddProjectForm;
@@ -89,7 +88,6 @@ export class ProjectsComponent implements OnInit {
       }
     );
   }
-  
 
   resetNewProject() {
     this.newProject = {
@@ -104,6 +102,11 @@ export class ProjectsComponent implements OnInit {
 
   viewProjectDetails(projectId: number) {
     this.router.navigate(['/projects', projectId]);
+  }
+
+  // Nouvelle méthode pour afficher les tâches d'un projet
+  viewProjectTasks(projectId: number) {
+    this.router.navigate(['/projects', projectId, 'tasks']); // La route vers la liste des tâches
   }
 
   logout() {

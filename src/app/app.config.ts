@@ -4,7 +4,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
 import { appRoutes } from './app.routes';
 import { provideHttpClient } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';  // Assurez-vous d'importer FormsModule
+import { FormsModule } from '@angular/forms';
 
 // Importer les composants standalone
 import { AppComponent } from './app.component';
@@ -13,23 +13,24 @@ import { RegisterComponent } from './components/register/register.component';
 import { ProjectsComponent } from './components/projects/projects.component';
 import { TaskComponent } from './components/task/task.component';
 import { HomeComponent } from './components/home/home.component';
+import { TaskListComponent } from './components/task-list/task-list.component'
 
 @NgModule({
   imports: [
-    BrowserModule,  // Utilise BrowserModule pour les applications dans le navigateur
-    CommonModule,
-    RouterModule.forRoot(appRoutes), // Configure le routage
-    FormsModule,  // Assure-toi que FormsModule est bien inclus ici
-    AppComponent,   // Importer le composant sans le déclarer
+    BrowserModule,
+    CommonModule,  // Importation de CommonModule pour *ngIf, *ngFor
+    RouterModule.forRoot(appRoutes),  // Configuration des routes
+    FormsModule,  // Importation de FormsModule pour les formulaires
     LoginComponent,
     RegisterComponent,
     ProjectsComponent,
     TaskComponent,
     HomeComponent,
+    TaskListComponent,  // Ajout de TaskListComponent
   ],
   providers: [
     provideHttpClient(), // Fournit HttpClient
   ],
-  bootstrap: [AppComponent], // Démarrage de l'application
+  bootstrap: [AppComponent],  // Bootstrap de l'application avec AppComponent
 })
 export class AppConfig {}
