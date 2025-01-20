@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
+import { tap } from 'rxjs/operators';  // Ajoute cette ligne pour pouvoir utiliser tap
+
 
 @Injectable({
   providedIn: 'root', // Service disponible dans toute l'application
@@ -15,7 +17,13 @@ export class AuthService {
 
   // Méthode pour se connecter
   login(email: string, password: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, { email, password });
+    return this.http.post(`${this.apiUrl}/login`, { email, password }).pipe(
+      tap((response: any) => {
+        if (response && response.token) {
+          this.setLoggedIn(response.email, response.userId);  // Stocker email et ID utilisateur
+        }
+      })
+    );
   }
 
   // Méthode pour s'inscrire
@@ -32,14 +40,16 @@ export class AuthService {
   logout(): void {
     this.isAuthenticated = false; // Réinitialiser l'état d'authentification
     localStorage.removeItem('userEmail'); // Supprimer l'email de l'utilisateur dans le localStorage
+    localStorage.removeItem('userId'); // Supprimer l'ID de l'utilisateur
     localStorage.removeItem('token'); // Supprimer le token si nécessaire
     this.isAuthenticatedSubject.next(this.isAuthenticated); // Met à jour le BehaviorSubject pour notifier les composants abonnés
   }
 
   // Définir un utilisateur comme connecté
-  setLoggedIn(email: string): void {
+  setLoggedIn(email: string, userId: number): void {
     this.isAuthenticated = true; // Marquer l'utilisateur comme authentifié
     localStorage.setItem('userEmail', email); // Sauvegarder l'email dans le localStorage
+    localStorage.setItem('userId', userId.toString()); // Sauvegarder l'ID de l'utilisateur dans le localStorage
     this.isAuthenticatedSubject.next(this.isAuthenticated); // Met à jour le BehaviorSubject pour notifier les composants abonnés
   }
 
@@ -51,6 +61,11 @@ export class AuthService {
   // Récupérer l'email de l'utilisateur connecté
   getLoggedInUserEmail(): string | null {
     return localStorage.getItem('userEmail');
+  }
+
+  // Récupérer l'ID de l'utilisateur connecté
+  getUserId(): number | null {
+    return parseInt(localStorage.getItem('userId') || '0', 10);  // Retourner l'ID de l'utilisateur ou null
   }
 
   // Observable pour surveiller l'état d'authentification
