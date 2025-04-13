@@ -113,6 +113,26 @@
     </form>
   </ng-template>
 
+  <!-- Formulaire d'invitation -->
+  <div class="invite-member">
+    <h3>Inviter un membre au projet</h3>
+    <form (ngSubmit)="inviteMember()" #inviteForm="ngForm">
+      <input
+        type="email"
+        [(ngModel)]="inviteEmail"
+        name="email"
+        required
+        placeholder="Adresse email"
+      />
+      <select [(ngModel)]="inviteRole" name="role" required>
+        <option value="ADMIN">Administrateur</option>
+        <option value="MEMBRE">Membre</option>
+        <option value="OBSERVATEUR">Observateur</option>
+      </select>
+      <button type="submit" [disabled]="!inviteForm.form.valid">Inviter</button>
+    </form>
+  </div>
+
   <!-- Affichage des erreurs -->
   <div *ngIf="error" class="error-message">{{ error }}</div>
 </div>

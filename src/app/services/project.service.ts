@@ -7,7 +7,7 @@ import { throwError } from 'rxjs';
   providedIn: 'root'
 })
 export class ProjectService {
-  private apiUrl = 'http://localhost:8080/api/projects';  //  URL de base pour l'API
+  private apiUrl = 'http://localhost:8080/api/projects';
 
   constructor(private http: HttpClient) {}
 
@@ -59,6 +59,21 @@ export class ProjectService {
       catchError((error) => {
         console.error('Erreur lors de la suppression du projet:', error);
         return throwError(() => new Error('Erreur de suppression du projet'));
+      })
+    );
+  }
+
+  // Inviter un utilisateur à un projet avec son email et un rôle
+  addUserToProject(projectId: number, email: string, role: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${projectId}/users`, null, {
+      params: {
+        userEmail: email,
+        role: role
+      }
+    }).pipe(
+      catchError((error) => {
+        console.error('Erreur lors de l\'invitation du membre:', error);
+        return throwError(() => new Error('Erreur d\'invitation'));
       })
     );
   }

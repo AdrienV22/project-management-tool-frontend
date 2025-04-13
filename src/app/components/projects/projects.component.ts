@@ -35,6 +35,29 @@ export class ProjectsComponent implements OnInit {
     this.loadProjects();
   }
 
+  onSubmit() {
+    this.projectService.addProject(this.newProject).subscribe({
+      next: (response) => {
+        console.log('Projet ajouté avec succès :', response);
+        this.projects.push(response); // mise à jour locale
+        this.newProject = {
+          name: '',
+          description: '',
+          startDate: '',
+          endDate: '',
+          status: 'pending',
+          client: ''
+        };
+        this.showAddProjectForm = false;
+      },
+      error: (err) => {
+        this.errorMessage = err.message;
+        console.error('Erreur lors de l\'ajout du projet :', err);
+      }
+    });
+  }
+  
+
   loadProjects() {
     this.projectService.getProjects().subscribe(
       (projects: any[]) => {
