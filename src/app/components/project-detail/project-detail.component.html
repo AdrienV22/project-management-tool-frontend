@@ -35,46 +35,23 @@
     <form (ngSubmit)="updateProject()">
       <div class="form-group">
         <label for="name">Nom du projet :</label>
-        <input 
-          type="text" 
-          id="name" 
-          [(ngModel)]="project.name" 
-          name="name" 
-          required />
+        <input type="text" id="name" [(ngModel)]="project.name" name="name" required />
       </div>
       <div class="form-group">
         <label for="description">Description :</label>
-        <textarea 
-          id="description" 
-          [(ngModel)]="project.description" 
-          name="description" 
-          required>
-        </textarea>
+        <textarea id="description" [(ngModel)]="project.description" name="description" required></textarea>
       </div>
       <div class="form-group">
         <label for="startDate">Date de début :</label>
-        <input 
-          type="date" 
-          id="startDate" 
-          [(ngModel)]="project.startDate" 
-          name="startDate" 
-          required />
+        <input type="date" id="startDate" [(ngModel)]="project.startDate" name="startDate" required />
       </div>
       <div class="form-group">
         <label for="endDate">Date de fin :</label>
-        <input 
-          type="date" 
-          id="endDate" 
-          [(ngModel)]="project.endDate" 
-          name="endDate" 
-          required />
+        <input type="date" id="endDate" [(ngModel)]="project.endDate" name="endDate" required />
       </div>
       <div class="form-group">
         <label for="statut">Statut :</label>
-        <select 
-          id="statut" 
-          [(ngModel)]="project.statut" 
-          name="statut">
+        <select id="statut" [(ngModel)]="project.statut" name="statut">
           <option value="En attente">En attente</option>
           <option value="En cours">En cours</option>
           <option value="Terminé">Terminé</option>
@@ -82,33 +59,15 @@
       </div>
       <div class="form-group">
         <label for="clientEmail">Chef de projet (Email) :</label>
-        <input 
-          type="email" 
-          id="clientEmail" 
-          [(ngModel)]="project.clientEmail" 
-          name="clientEmail" 
-          required 
-          #emailField="ngModel" />
+        <input type="email" id="clientEmail" [(ngModel)]="project.clientEmail" name="clientEmail" required #emailField="ngModel" />
         <div *ngIf="emailField.invalid && emailField.touched" class="error">
           Veuillez entrer un email valide.
         </div>
       </div>
 
-      <!-- Boutons pour le mode édition -->
       <div class="button-group">
-        <button 
-          type="submit" 
-          class="save-btn" 
-          aria-label="Enregistrer les modifications">
-          Enregistrer
-        </button>
-        <button 
-          type="button" 
-          (click)="cancelEditMode()" 
-          class="cancel-btn" 
-          aria-label="Annuler les modifications">
-          Annuler
-        </button>
+        <button type="submit" class="save-btn" aria-label="Enregistrer les modifications">Enregistrer</button>
+        <button type="button" (click)="cancelEditMode()" class="cancel-btn" aria-label="Annuler les modifications">Annuler</button>
       </div>
     </form>
   </ng-template>
@@ -117,19 +76,29 @@
   <div class="invite-member">
     <h3>Inviter un membre au projet</h3>
     <form (ngSubmit)="inviteMember()" #inviteForm="ngForm">
-      <input
-        type="email"
-        [(ngModel)]="inviteEmail"
-        name="email"
-        required
-        placeholder="Adresse email"
-      />
+      <input type="email" [(ngModel)]="inviteEmail" name="email" required placeholder="Adresse email" />
       <select [(ngModel)]="inviteRole" name="role" required>
         <option value="ADMIN">Administrateur</option>
         <option value="MEMBRE">Membre</option>
         <option value="OBSERVATEUR">Observateur</option>
       </select>
       <button type="submit" [disabled]="!inviteForm.form.valid">Inviter</button>
+    </form>
+  </div>
+
+  <!-- Formulaire de création de tâche -->
+  <div class="task-creation">
+    <h3>Créer une tâche pour ce projet</h3>
+    <form (ngSubmit)="createTask()" #taskForm="ngForm">
+      <input type="text" name="title" placeholder="Titre" [(ngModel)]="newTask.title" required />
+      <textarea name="description" placeholder="Description" [(ngModel)]="newTask.description" required></textarea>
+      <input type="date" name="dueDate" [(ngModel)]="newTask.dueDate" required />
+      <select name="priority" [(ngModel)]="newTask.priority" required>
+        <option value="LOW">Basse</option>
+        <option value="MEDIUM">Moyenne</option>
+        <option value="HIGH">Haute</option>
+      </select>
+      <button type="submit" [disabled]="!taskForm.form.valid">Créer la tâche</button>
     </form>
   </div>
 

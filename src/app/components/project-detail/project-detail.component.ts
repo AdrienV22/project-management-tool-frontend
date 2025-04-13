@@ -21,6 +21,13 @@ export class ProjectDetailComponent implements OnInit {
   inviteEmail: string = '';
   inviteRole: string = 'MEMBRE';
 
+  newTask: any = {
+    title: '',
+    description: '',
+    dueDate: '',
+    priority: 'MEDIUM'
+  };
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -123,5 +130,23 @@ export class ProjectDetailComponent implements OnInit {
           console.error(`Erreur lors de la mise à jour du rôle pour ${member.email}`);
         }
       });
+  }
+
+  createTask(): void {
+    const taskToSend = {
+      ...this.newTask,
+      parentProject: this.project
+    };
+
+    this.projectService.createTask(taskToSend).subscribe({
+      next: (createdTask) => {
+        console.log('Tâche créée :', createdTask);
+        this.newTask = { title: '', description: '', dueDate: '', priority: 'MEDIUM' };
+        this.fetchProjectDetails(this.project.id);
+      },
+      error: () => {
+        console.error('Erreur lors de la création de la tâche');
+      }
+    });
   }
 }

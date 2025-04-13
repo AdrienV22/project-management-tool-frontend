@@ -77,4 +77,15 @@ export class ProjectService {
       })
     );
   }
+
+  // Créer une tâche liée à un projet
+  createTask(task: any): Observable<any> {
+    return this.http.post('http://localhost:8080/tasks', task).pipe(
+      catchError((error) => {
+        console.error('Erreur lors de la création de la tâche :', error);
+        return throwError(() => new Error('Erreur de création de la tâche'));
+      })
+    );
+  }
 }
+ 
