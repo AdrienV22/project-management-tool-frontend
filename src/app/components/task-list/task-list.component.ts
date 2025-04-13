@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TaskService, Task } from '../../services/task.service'; // Importation de Task
+import { TaskService, Task } from '../../services/task.service';
 
 @Component({
   selector: 'app-task-list',
@@ -12,13 +12,14 @@ import { TaskService, Task } from '../../services/task.service'; // Importation 
 })
 export class TaskListComponent implements OnInit {
   tasks: Task[] = [];
+  projectMembers: any[] = []; // Liste des membres du projet pour l'assignation
   newTask: Task = {
     id: 0,
     title: '',
     description: '',
     dueDate: '',
     status: 'New',
-    priority: 'MOYENNE', // Cette valeur est maintenant valide
+    priority: 'MOYENNE',
     targetUserId: 1,
   };
   editingTask: Task | null = null;
@@ -29,6 +30,7 @@ export class TaskListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadTasks();
+    this.loadProjectMembers();
   }
 
   private loadTasks(): void {
@@ -41,6 +43,15 @@ export class TaskListComponent implements OnInit {
         this.errorMessage = 'Impossible de charger les tâches.';
       }
     );
+  }
+
+  private loadProjectMembers(): void {
+    // Simuler des membres (à remplacer par un vrai appel si nécessaire)
+    this.projectMembers = [
+      { username: 'Alice', email: 'alice@example.com' },
+      { username: 'Bob', email: 'bob@example.com' },
+      { username: 'Charlie', email: 'charlie@example.com' },
+    ];
   }
 
   createTask(): void {
@@ -57,6 +68,21 @@ export class TaskListComponent implements OnInit {
         this.successMessage = '';
       }
     );
+  }
+
+  assignTask(task: Task): void {
+    if (!task.id || !task.assigneeEmail) return;
+
+    this.taskService.assignTaskToUser(task.id, task.assigneeEmail).subscribe({
+      next: () => {
+        this.successMessage = `Tâche assignée à ${task.assigneeEmail}`;
+        this.errorMessage = '';
+      },
+      error: () => {
+        this.errorMessage = 'Erreur lors de l’assignation de la tâche';
+        this.successMessage = '';
+      }
+    });
   }
 
   startEditing(task: Task): void {

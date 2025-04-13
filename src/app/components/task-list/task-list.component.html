@@ -42,6 +42,17 @@
         <p><strong>Statut:</strong> {{ task.status }}</p>
         <p><strong>Priorité:</strong> {{ task.priority }}</p>
 
+        
+          <!-- Menu déroulant pour assigner un membre -->
+          <label for="assignee">Assigner à :</label>
+          <select [(ngModel)]="task.assigneeEmail" (change)="assignTask(task)">
+            <option *ngFor="let user of projectMembers" [value]="user.email">
+              {{ user.username }} ({{ user.email }})
+            </option>
+          </select>
+        </div>
+        
+
         <!-- Boutons d'action pour modifier et supprimer -->
         <button (click)="startEditing(task)">Modifier</button>
         <button *ngIf="task.id !== undefined" (click)="deleteTask(task.id)">Supprimer</button>
