@@ -27,7 +27,6 @@ export class ProjectDetailComponent implements OnInit {
     private projectService: ProjectService
   ) {}
 
-  // Initialise le composant en chargeant les détails du projet depuis l'URL
   ngOnInit(): void {
     const projectId = this.route.snapshot.paramMap.get('id');
     if (projectId) {
@@ -35,7 +34,6 @@ export class ProjectDetailComponent implements OnInit {
     }
   }
 
-  // Récupère les détails d'un projet via le service
   fetchProjectDetails(id: string): void {
     this.loading = true;
     this.projectService.getProjectById(+id).subscribe(
@@ -50,18 +48,15 @@ export class ProjectDetailComponent implements OnInit {
     );
   }
 
-  // Active le mode édition pour modifier le projet
   enableEditMode(): void {
     this.isEditing = true;
   }
 
-  // Annule le mode édition et recharge les données du projet
   cancelEditMode(): void {
     this.isEditing = false;
     this.fetchProjectDetails(this.project.id);
   }
 
-  // Envoie les modifications du projet au backend
   updateProject(): void {
     this.loading = true;
 
@@ -84,7 +79,6 @@ export class ProjectDetailComponent implements OnInit {
     );
   }
 
-  // Supprime un projet après confirmation de l'utilisateur
   confirmDelete(): void {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) {
       this.loading = true;
@@ -100,7 +94,6 @@ export class ProjectDetailComponent implements OnInit {
     }
   }
 
-  // Envoie une invitation à un membre pour rejoindre le projet
   inviteMember(): void {
     if (!this.project || !this.project.id || !this.inviteEmail || !this.inviteRole) return;
 
@@ -111,9 +104,23 @@ export class ProjectDetailComponent implements OnInit {
           console.log('Membre invité avec succès');
           this.inviteEmail = '';
           this.inviteRole = 'MEMBRE';
+          this.fetchProjectDetails(this.project.id);
         },
         error: () => {
           console.error('Erreur lors de l’invitation');
+        }
+      });
+  }
+
+  changeUserRole(member: any): void {
+    this.projectService
+      .addUserToProject(this.project.id, member.email, member.userRole)
+      .subscribe({
+        next: () => {
+          console.log(`Rôle mis à jour pour ${member.email}`);
+        },
+        error: () => {
+          console.error(`Erreur lors de la mise à jour du rôle pour ${member.email}`);
         }
       });
   }

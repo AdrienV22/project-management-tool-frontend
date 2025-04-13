@@ -133,6 +133,21 @@
     </form>
   </div>
 
+  <!-- Liste des membres avec modification du rôle -->
+  <div class="project-members" *ngIf="project.userList?.length">
+    <h3>Membres du projet</h3>
+    <ul>
+      <li *ngFor="let member of project.userList">
+        <span>{{ member.username }} ({{ member.email }})</span>
+        <select [(ngModel)]="member.userRole" (change)="changeUserRole(member)">
+          <option value="ADMIN">Admin</option>
+          <option value="MEMBRE">Membre</option>
+          <option value="OBSERVATEUR">Observateur</option>
+        </select>
+      </li>
+    </ul>
+  </div>
+
   <!-- Affichage des erreurs -->
   <div *ngIf="error" class="error-message">{{ error }}</div>
 </div>
