@@ -31,9 +31,20 @@
   <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
   <p *ngIf="successMessage" class="success">{{ successMessage }}</p>
 
+  <!-- Filtre par statut -->
+  <div class="filter">
+    <label for="statusFilter">Filtrer par statut :</label>
+    <select id="statusFilter" [(ngModel)]="selectedStatus" name="statusFilter">
+      <option value="">Tous</option>
+      <option value="New">Nouveau</option>
+      <option value="In Progress">En cours</option>
+      <option value="Completed">Terminé</option>
+    </select>
+  </div>
+
   <!-- Liste des tâches -->
   <ul class="task-list">
-    <li *ngFor="let task of tasks">
+    <li *ngFor="let task of tasks | statusFilter:selectedStatus">
       <!-- Affichage des tâches lorsqu'elles ne sont pas en mode édition -->
       <div *ngIf="editingTask?.id !== task.id">
         <h3>{{ task.title }}</h3>
@@ -42,16 +53,13 @@
         <p><strong>Statut:</strong> {{ task.status }}</p>
         <p><strong>Priorité:</strong> {{ task.priority }}</p>
 
-        
-          <!-- Menu déroulant pour assigner un membre -->
-          <label for="assignee">Assigner à :</label>
-          <select [(ngModel)]="task.assigneeEmail" (change)="assignTask(task)">
-            <option *ngFor="let user of projectMembers" [value]="user.email">
-              {{ user.username }} ({{ user.email }})
-            </option>
-          </select>
-        </div>
-        
+        <!-- Menu déroulant pour assigner un membre -->
+        <label for="assignee">Assigner à :</label>
+        <select [(ngModel)]="task.assigneeEmail" (change)="assignTask(task)">
+          <option *ngFor="let user of projectMembers" [value]="user.email">
+            {{ user.username }} ({{ user.email }})
+          </option>
+        </select>
 
         <!-- Boutons d'action pour modifier et supprimer -->
         <button (click)="startEditing(task)">Modifier</button>

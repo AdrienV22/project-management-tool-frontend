@@ -22,8 +22,9 @@ export interface Task {
 export class TaskService {
   private apiUrl = 'http://localhost:8080/tasks';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
+  // Récupérer toutes les tâches
   getTasks(): Observable<Task[]> {
     return this.http.get<Task[]>(this.apiUrl).pipe(
       catchError(error => {
@@ -33,6 +34,7 @@ export class TaskService {
     );
   }
 
+  // Créer une nouvelle tâche
   createTask(task: Task): Observable<Task> {
     return this.http.post<Task>(this.apiUrl, task).pipe(
       catchError(error => {
@@ -42,6 +44,7 @@ export class TaskService {
     );
   }
 
+  // Mettre à jour une tâche
   updateTask(task: Task): Observable<Task> {
     return this.http.put<Task>(`${this.apiUrl}/${task.id}`, task).pipe(
       catchError(error => {
@@ -51,6 +54,7 @@ export class TaskService {
     );
   }
 
+  // Supprimer une tâche
   deleteTask(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
       catchError(error => {
@@ -60,6 +64,7 @@ export class TaskService {
     );
   }
 
+  // Assigner une tâche à un utilisateur
   assignTaskToUser(taskId: number, userEmail: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/${taskId}/assign`, null, {
       params: { email: userEmail }
@@ -67,6 +72,16 @@ export class TaskService {
       catchError(error => {
         console.error('Erreur lors de l’assignation de la tâche :', error);
         return throwError(() => new Error('Erreur lors de l’assignation de la tâche'));
+      })
+    );
+  }
+
+  // Récupérer l'historique d'une tâche
+  getTaskHistory(taskId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${taskId}/history`).pipe(
+      catchError(error => {
+        console.error('Erreur lors de la récupération de l’historique :', error);
+        return throwError(() => new Error('Impossible de charger l’historique'));
       })
     );
   }

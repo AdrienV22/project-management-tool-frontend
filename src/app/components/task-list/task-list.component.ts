@@ -25,6 +25,7 @@ export class TaskListComponent implements OnInit {
   editingTask: Task | null = null;
   errorMessage: string = '';
   successMessage: string = '';
+  selectedStatus: string = ''; // Ajout pour le filtre
 
   constructor(private taskService: TaskService) {}
 
@@ -46,7 +47,6 @@ export class TaskListComponent implements OnInit {
   }
 
   private loadProjectMembers(): void {
-    // Simuler des membres (à remplacer par un vrai appel si nécessaire)
     this.projectMembers = [
       { username: 'Alice', email: 'alice@example.com' },
       { username: 'Bob', email: 'bob@example.com' },
