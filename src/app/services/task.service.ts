@@ -34,15 +34,16 @@ export class TaskService {
     );
   }
 
-  // Créer une nouvelle tâche
   createTask(task: Task): Observable<Task> {
-    return this.http.post<Task>(this.apiUrl, task).pipe(
+    const userId = task.targetUserId;  // Assure-toi que ce champ est bien défini dans le modèle
+    return this.http.post<Task>(`${this.apiUrl}?userId=${userId}`, task).pipe(
       catchError(error => {
-        console.error('Error creating task:', error);
-        return throwError(() => new Error('Failed to create task'));
+        console.error('Erreur lors de la création de la tâche :', error);
+        return throwError(() => new Error('Impossible de créer la tâche'));
       })
     );
   }
+  
 
   // Mettre à jour une tâche
   updateTask(task: Task): Observable<Task> {
