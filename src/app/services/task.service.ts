@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { throwError } from 'rxjs';
 
 // Définir un type Task
 export interface Task {
@@ -13,7 +12,7 @@ export interface Task {
   status: string;
   priority: 'HAUTE' | 'MOYENNE' | 'BASSE';
   targetUserId: number;
-  assigneeEmail?: string; // Ajouté pour l'assignation frontend
+  assigneeEmail?: string;
 }
 
 @Injectable({
@@ -24,18 +23,22 @@ export class TaskService {
 
   constructor(private http: HttpClient) {}
 
-  // Récupérer toutes les tâches
-  getTasks(): Observable<Task[]> {
-    return this.http.get<Task[]>(this.apiUrl).pipe(
+  // ✅ Récupérer les tâches pour un utilisateur et/ou un projet
+  getTasks(userId?: number, projectId?: number): Observable<Task[]> {
+    let params = new HttpParams();
+    if (userId) params = params.set('userId', userId.toString());
+    if (projectId) params = params.set('projectId', projectId.toString());
+
+    return this.http.get<Task[]>(this.apiUrl, { params }).pipe(
       catchError(error => {
-        console.error('Error fetching tasks:', error);
-        return throwError(() => new Error('Failed to fetch tasks'));
+        console.error('Erreur lors du chargement des tâches :', error);
+        return throwError(() => new Error('Impossible de charger les tâches'));
       })
     );
   }
 
   createTask(task: Task): Observable<Task> {
-    const userId = task.targetUserId;  // Assure-toi que ce champ est bien défini dans le modèle
+    const userId = task.targetUserId;
     return this.http.post<Task>(`${this.apiUrl}?userId=${userId}`, task).pipe(
       catchError(error => {
         console.error('Erreur lors de la création de la tâche :', error);
@@ -43,29 +46,25 @@ export class TaskService {
       })
     );
   }
-  
 
-  // Mettre à jour une tâche
   updateTask(task: Task): Observable<Task> {
     return this.http.put<Task>(`${this.apiUrl}/${task.id}`, task).pipe(
       catchError(error => {
-        console.error('Error updating task:', error);
-        return throwError(() => new Error('Failed to update task'));
+        console.error('Erreur lors de la mise à jour de la tâche :', error);
+        return throwError(() => new Error('Impossible de mettre à jour la tâche'));
       })
     );
   }
 
-  // Supprimer une tâche
   deleteTask(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
       catchError(error => {
-        console.error('Error deleting task:', error);
-        return throwError(() => new Error('Failed to delete task'));
+        console.error('Erreur lors de la suppression de la tâche :', error);
+        return throwError(() => new Error('Impossible de supprimer la tâche'));
       })
     );
   }
 
-  // Assigner une tâche à un utilisateur
   assignTaskToUser(taskId: number, userEmail: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/${taskId}/assign`, null, {
       params: { email: userEmail }
@@ -77,7 +76,6 @@ export class TaskService {
     );
   }
 
-  // Récupérer l'historique d'une tâche
   getTaskHistory(taskId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${taskId}/history`).pipe(
       catchError(error => {

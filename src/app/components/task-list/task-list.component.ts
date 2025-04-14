@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { TaskService, Task } from '../../services/task.service';
 import { StatusFilterPipe } from '../../pipes/status-filter.pipe';
 
-
 @Component({
   selector: 'app-task-list',
   standalone: true,
@@ -22,7 +21,7 @@ export class TaskListComponent implements OnInit {
     dueDate: '',
     status: 'New',
     priority: 'MOYENNE',
-    targetUserId: 1,
+    targetUserId: 1, // À personnaliser selon l'utilisateur connecté
   };
   editingTask: Task | null = null;
   errorMessage: string = '';
@@ -32,6 +31,10 @@ export class TaskListComponent implements OnInit {
   selectedTaskHistory: any[] = [];
   visibleHistoryTaskId: number | null = null;
 
+  // À adapter dynamiquement selon ton contexte (id utilisateur + id projet)
+  userId: number = 1; // Exemple : utilisateur connecté
+  projectId: number = 1; // Exemple : projet courant
+
   constructor(private taskService: TaskService) {}
 
   ngOnInit(): void {
@@ -40,7 +43,7 @@ export class TaskListComponent implements OnInit {
   }
 
   private loadTasks(): void {
-    this.taskService.getTasks().subscribe(
+    this.taskService.getTasks(this.userId, this.projectId).subscribe(
       (data) => {
         this.tasks = data;
       },
@@ -142,7 +145,7 @@ export class TaskListComponent implements OnInit {
       dueDate: '',
       status: 'New',
       priority: 'MOYENNE',
-      targetUserId: 1,
+      targetUserId: this.userId,
     };
   }
 
