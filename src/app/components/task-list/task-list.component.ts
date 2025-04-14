@@ -2,11 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskService, Task } from '../../services/task.service';
+import { StatusFilterPipe } from '../../pipes/status-filter.pipe';
+
 
 @Component({
   selector: 'app-task-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, StatusFilterPipe],
   templateUrl: './task-list.component.html',
   styleUrls: ['./task-list.component.css'],
 })
