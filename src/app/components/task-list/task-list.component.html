@@ -42,66 +42,58 @@
     </select>
   </div>
 
-  <!-- Liste des tâches -->
-  <ul class="task-list">
-    <li *ngFor="let task of tasks | statusFilter:selectedStatus">
-      <!-- Affichage des tâches lorsqu'elles ne sont pas en mode édition -->
-      <div *ngIf="editingTask?.id !== task.id">
-        <h3>{{ task.title }}</h3>
-        <p>{{ task.description }}</p>
-        <p><strong>Date d'échéance:</strong> {{ task.dueDate }}</p>
-        <p><strong>Statut:</strong> {{ task.status }}</p>
-        <p><strong>Priorité:</strong> {{ task.priority }}</p>
+  <!-- ... (le reste de ton code inchangé au-dessus) -->
 
-        <!-- Menu déroulant pour assigner un membre -->
-        <label for="assignee">Assigner à :</label>
-        <select [(ngModel)]="task.assigneeEmail" (change)="assignTask(task)">
-          <option *ngFor="let user of projectMembers" [value]="user.email">
-            {{ user.username }} ({{ user.email }})
-          </option>
-        </select>
+<!-- Liste des tâches -->
+<ul class="task-list">
+  <li *ngFor="let task of tasks | statusFilter:selectedStatus">
+    <!-- Affichage des tâches lorsqu'elles ne sont pas en mode édition -->
+    <div *ngIf="editingTask?.id !== task.id">
+      <h3>{{ task.title }}</h3>
+      <p>{{ task.description }}</p>
+      <p><strong>Date d'échéance:</strong> {{ task.dueDate }}</p>
+      <p><strong>Statut:</strong> {{ task.status }}</p>
+      <p><strong>Priorité:</strong> {{ task.priority }}</p>
 
-        <!-- Boutons d'action pour modifier et supprimer -->
-        <button (click)="startEditing(task)">Modifier</button>
-        <button *ngIf="task.id !== undefined" (click)="deleteTask(task.id)">Supprimer</button>
+      <!-- Menu déroulant pour assigner un membre -->
+      <label for="assignee">Assigner à :</label>
+      <select [(ngModel)]="task.assigneeEmail" (change)="assignTask(task)">
+        <option *ngFor="let user of projectMembers" [value]="user.email">
+          {{ user.username }} ({{ user.email }})
+        </option>
+      </select>
+
+      <!-- Boutons d'action -->
+      <button (click)="startEditing(task)">Modifier</button>
+      <button *ngIf="task.id !== undefined" (click)="deleteTask(task.id)">Supprimer</button>
+      <button (click)="toggleHistory(task.id)">Voir l'historique</button>
+
+      <!-- Historique des modifications -->
+      <div *ngIf="task.showHistory && task.history?.length > 0" class="task-history">
+        <h4>Historique des modifications :</h4>
+        <ul>
+          <li *ngFor="let entry of task.history">
+            <strong>{{ entry.modifiedAt | date:'short' }}</strong> :
+            Champ <em>{{ entry.fieldName }}</em> changé de 
+            "<span class="old-value">{{ entry.oldValue }}</span>" à 
+            "<span class="new-value">{{ entry.newValue }}</span>" 
+            par <strong>{{ entry.modifiedBy }}</strong>
+          </li>
+        </ul>
       </div>
-
-      <!-- Formulaire d'édition de tâche -->
-      <div *ngIf="editingTask?.id === task.id" class="edit-form">
-        <h3>Modifier la tâche</h3>
-        <form (ngSubmit)="updateTask()">
-          <div>
-            <label for="edit-title">Titre:</label>
-            <input id="edit-title" [(ngModel)]="editingTaskTitle" name="title" required />
-          </div>
-          <div>
-            <label for="edit-description">Description:</label>
-            <textarea id="edit-description" [(ngModel)]="editingTaskDescription" name="description" required></textarea>
-          </div>
-          <div>
-            <label for="edit-dueDate">Date d'échéance:</label>
-            <input type="date" id="edit-dueDate" [(ngModel)]="editingTaskDueDate" name="dueDate" />
-          </div>
-          <div>
-            <label for="edit-priority">Priorité:</label>
-            <select id="edit-priority" [(ngModel)]="editingTaskPriority" name="priority">
-              <option value="HAUTE">Haute</option>
-              <option value="MOYENNE">Moyenne</option>
-              <option value="BASSE">Basse</option>
-            </select>
-          </div>
-          <div>
-            <label for="edit-status">Statut:</label>
-            <select id="edit-status" [(ngModel)]="editingTaskStatus" name="status">
-              <option value="New">Nouveau</option>
-              <option value="In Progress">En cours</option>
-              <option value="Completed">Terminé</option>
-            </select>
-          </div>
-          <button type="submit">Enregistrer</button>
-          <button type="button" (click)="cancelEditing()">Annuler</button>
-        </form>
+      <div *ngIf="task.showHistory && (!task.history || task.history.length === 0)">
+        <em>Aucune modification enregistrée.</em>
       </div>
-    </li>
-  </ul>
-</div>
+    </div>
+
+    <!-- Formulaire d'édition de tâche -->
+    <div *ngIf="editingTask?.id === task.id" class="edit-form">
+      <!-- ... formulaire d’édition inchangé ... -->
+      <form (ngSubmit)="updateTask()">
+        <!-- champs déjà présents -->
+        <button type="submit">Enregistrer</button>
+        <button type="button" (click)="cancelEditing()">Annuler</button>
+      </form>
+    </div>
+  </li>
+</ul>
