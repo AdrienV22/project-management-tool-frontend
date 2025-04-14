@@ -12,7 +12,7 @@ import { TaskService, Task } from '../../services/task.service';
 })
 export class TaskListComponent implements OnInit {
   tasks: Task[] = [];
-  projectMembers: any[] = []; // Liste des membres du projet pour l'assignation
+  projectMembers: any[] = [];
   newTask: Task = {
     id: 0,
     title: '',
@@ -25,7 +25,10 @@ export class TaskListComponent implements OnInit {
   editingTask: Task | null = null;
   errorMessage: string = '';
   successMessage: string = '';
-  selectedStatus: string = ''; // Ajout pour le filtre
+  selectedStatus: string = '';
+
+  selectedTaskHistory: any[] = [];
+  visibleHistoryTaskId: number | null = null;
 
   constructor(private taskService: TaskService) {}
 
@@ -139,6 +142,24 @@ export class TaskListComponent implements OnInit {
       priority: 'MOYENNE',
       targetUserId: 1,
     };
+  }
+
+  showHistory(taskId: number): void {
+    if (this.visibleHistoryTaskId === taskId) {
+      this.visibleHistoryTaskId = null;
+      this.selectedTaskHistory = [];
+      return;
+    }
+
+    this.taskService.getTaskHistory(taskId).subscribe({
+      next: (history) => {
+        this.selectedTaskHistory = history;
+        this.visibleHistoryTaskId = taskId;
+      },
+      error: () => {
+        this.errorMessage = 'Impossible de récupérer l’historique.';
+      }
+    });
   }
 
   get editingTaskTitle(): string {
