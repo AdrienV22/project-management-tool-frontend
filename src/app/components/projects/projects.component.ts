@@ -22,8 +22,12 @@ export class ProjectsComponent implements OnInit {
     startDate: '',
     endDate: '',
     status: 'pending',
-    client: ''  // représente le chef de projet
+    client: ''
   };
+
+  // Champs pour inviter un membre
+  inviteEmail: string = '';
+  inviteRole: string = 'MEMBRE';
 
   constructor(
     private authService: AuthService,
@@ -35,40 +39,11 @@ export class ProjectsComponent implements OnInit {
     this.loadProjects();
   }
 
-  onSubmit() {
-    this.projectService.addProject(this.newProject).subscribe({
-      next: (response) => {
-        console.log('Projet ajouté avec succès :', response);
-        this.projects.push(response); // mise à jour locale
-        this.newProject = {
-          name: '',
-          description: '',
-          startDate: '',
-          endDate: '',
-          status: 'pending',
-          client: ''
-        };
-        this.showAddProjectForm = false;
-      },
-      error: (err) => {
-        this.errorMessage = err.message;
-        console.error('Erreur lors de l\'ajout du projet :', err);
-      }
-    });
-  }
-  
-
   loadProjects() {
     this.projectService.getProjects().subscribe(
       (projects: any[]) => {
         this.projects = projects || [];
-        
-        if (this.projects.length === 0) {
-          this.errorMessage = 'Aucun projet trouvé.';
-        } else {
-          this.errorMessage = null; // Réinitialiser l'erreur si des projets sont trouvés
-          console.log('Projets chargés:', this.projects);  // Vérification du contenu des projets
-        }
+        this.errorMessage = this.projects.length === 0 ? 'Aucun projet trouvé.' : null;
       },
       (error) => {
         console.error('Erreur lors de la récupération des projets :', error);
@@ -86,21 +61,15 @@ export class ProjectsComponent implements OnInit {
       this.errorMessage = 'Veuillez remplir tous les champs obligatoires, y compris le chef de projet.';
       return;
     }
-  
-    const startDate = new Date(this.newProject.startDate);
-    const endDate = new Date(this.newProject.endDate);
-  
-    const formattedStartDate = startDate.toISOString().split('T')[0];
-    const formattedEndDate = endDate.toISOString().split('T')[0];
-  
-    this.newProject.startDate = formattedStartDate;
-    this.newProject.endDate = formattedEndDate;
-  
-    console.log('Données du projet:', this.newProject);
-  
+
+    const startDate = new Date(this.newProject.startDate).toISOString().split('T')[0];
+    const endDate = new Date(this.newProject.endDate).toISOString().split('T')[0];
+
+    this.newProject.startDate = startDate;
+    this.newProject.endDate = endDate;
+
     this.projectService.addProject(this.newProject).subscribe(
       (response) => {
-        console.log('Projet ajouté avec succès:', response);
         this.projects.push(response);
         this.toggleAddProjectForm();
         this.resetNewProject();
@@ -127,9 +96,13 @@ export class ProjectsComponent implements OnInit {
     this.router.navigate(['/projects', projectId]);
   }
 
-  // Nouvelle méthode pour afficher les tâches d'un projet
   viewProjectTasks(projectId: number) {
-    this.router.navigate(['/projects', projectId, 'tasks']); // La route vers la liste des tâches
+    this.router.navigate(['/projects', projectId, 'tasks']);
+  }
+
+  inviteMember() {
+    console.log('Invitation envoyée à', this.inviteEmail, 'avec le rôle', this.inviteRole);
+    // Tu pourras appeler le backend ici si tu veux lier à une fonctionnalité réelle
   }
 
   logout() {
@@ -137,4 +110,3 @@ export class ProjectsComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 }
-

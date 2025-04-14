@@ -66,7 +66,8 @@
       <!-- Boutons d'action -->
       <button (click)="startEditing(task)">Modifier</button>
       <button *ngIf="task.id !== undefined" (click)="deleteTask(task.id)">Supprimer</button>
-      <button (click)="toggleHistory(task.id)">Voir l'historique</button>
+      <button (click)="showHistory(task.id)">Voir l'historique</button>
+
 
       <!-- Historique des modifications -->
       <div *ngIf="task.showHistory && task.history?.length > 0" class="task-history">
