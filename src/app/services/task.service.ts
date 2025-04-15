@@ -39,6 +39,8 @@ export class TaskService {
 
   createTask(task: Task): Observable<Task> {
     const userId = task.targetUserId;
+    console.log("Données envoyées pour création :", task); 
+  
     return this.http.post<Task>(`${this.apiUrl}?userId=${userId}`, task).pipe(
       catchError(error => {
         console.error('Erreur lors de la création de la tâche :', error);
@@ -46,7 +48,7 @@ export class TaskService {
       })
     );
   }
-
+  
   updateTask(task: Task): Observable<Task> {
     return this.http.put<Task>(`${this.apiUrl}/${task.id}`, task).pipe(
       catchError(error => {

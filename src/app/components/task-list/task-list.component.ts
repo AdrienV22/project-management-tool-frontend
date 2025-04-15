@@ -4,6 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { TaskService, Task } from '../../services/task.service';
 import { StatusFilterPipe } from '../../pipes/status-filter.pipe';
 
+interface ProjectReference {
+  id: number;
+}
+
+interface ExtendedTask extends Task {
+  parentProject?: ProjectReference;
+}
+
 @Component({
   selector: 'app-task-list',
   standalone: true,
@@ -14,30 +22,33 @@ import { StatusFilterPipe } from '../../pipes/status-filter.pipe';
 export class TaskListComponent implements OnInit {
   tasks: Task[] = [];
   projectMembers: any[] = [];
-  newTask: Task = {
-    id: 0,
-    title: '',
-    description: '',
-    dueDate: '',
-    status: 'New',
-    priority: 'MOYENNE',
-    targetUserId: 1, // À personnaliser selon l'utilisateur connecté
-  };
+
+  newTask!: ExtendedTask;  // ➤ on ne l'initialise pas ici
+
   editingTask: Task | null = null;
   errorMessage: string = '';
   successMessage: string = '';
   selectedStatus: string = '';
-
   selectedTaskHistory: any[] = [];
   visibleHistoryTaskId: number | null = null;
 
-  // À adapter dynamiquement selon ton contexte (id utilisateur + id projet)
-  userId: number = 1; // Exemple : utilisateur connecté
-  projectId: number = 1; // Exemple : projet courant
+  userId: number = 26;
+  projectId: number = 26;
 
   constructor(private taskService: TaskService) {}
 
   ngOnInit(): void {
+    this.newTask = {
+      id: 0,
+      title: '',
+      description: '',
+      dueDate: '',
+      status: 'New',
+      priority: 'MOYENNE',
+      targetUserId: this.userId,
+      parentProject: { id: this.projectId },
+    };
+
     this.loadTasks();
     this.loadProjectMembers();
   }
@@ -63,6 +74,9 @@ export class TaskListComponent implements OnInit {
   }
 
   createTask(): void {
+    this.newTask.targetUserId = this.userId;
+    this.newTask.parentProject = { id: this.projectId };
+
     this.taskService.createTask(this.newTask).subscribe(
       (createdTask) => {
         this.tasks.push(createdTask);
@@ -146,6 +160,7 @@ export class TaskListComponent implements OnInit {
       status: 'New',
       priority: 'MOYENNE',
       targetUserId: this.userId,
+      parentProject: { id: this.projectId },
     };
   }
 
