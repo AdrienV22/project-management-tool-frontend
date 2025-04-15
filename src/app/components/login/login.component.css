@@ -1,5 +1,5 @@
-/* Importation de la police moderne */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500&display=swap');
 
 /* Style global */
 body {
@@ -8,51 +8,69 @@ body {
   color: #1a1a1a;
   margin: 0;
   padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+h1 {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Conteneur global */
+.login-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 /* Conteneur du formulaire */
 form {
   background-color: #ffffff;
-  padding: 40px;
-  border-radius: 10px;
+  padding: 50px;
+  border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
   width: 100%;
-  max-width: 420px;
+  max-width: 450px;
   box-sizing: border-box;
-  transition: all 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Inter', sans-serif;
 }
 
 /* Titre */
 h1 {
   text-align: center;
-  font-size: 1.8rem;
-  margin-bottom: 30px;
+  font-size: 2rem;
+  margin-bottom: 40px;
   color: #1a1a1a;
   font-weight: 600;
+  width: 100%;
 }
 
 /* Labels */
 label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: #333;
+  width: 100%;
 }
 
 /* Inputs */
 input {
+  font-family: 'IBM Plex Sans', sans-serif;
   width: 100%;
-  padding: 12px;
-  margin-bottom: 20px;
+  padding: 16px;
+  margin-bottom: 25px;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 8px;
   background-color: #fefefe;
-  font-size: 1rem;
+  font-size: 1.1rem;
   box-sizing: border-box;
   transition: border-color 0.2s ease-in-out;
 }
@@ -65,12 +83,12 @@ input:focus {
 /* Bouton */
 button {
   width: 100%;
-  padding: 12px;
+  padding: 16px;
   background-color: #1a1a1a;
   color: #ffffff;
   border: none;
-  border-radius: 6px;
-  font-size: 1.05rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.25s ease;
@@ -87,6 +105,16 @@ button:hover {
   }
 
   h1 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
+  }
+
+  input {
+    padding: 14px;
+    font-size: 1rem;
+  }
+
+  button {
+    padding: 14px;
+    font-size: 1rem;
   }
 }

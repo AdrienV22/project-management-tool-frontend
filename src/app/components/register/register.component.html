@@ -1,29 +1,32 @@
-<form (ngSubmit)="onSubmit()">
-  <div>
-    <label for="username">Nom d'utilisateur:</label>
-    <input type="text" id="username" [(ngModel)]="username" name="username" required />
-  </div>
+<div class="register-container">
+  <h1>Inscription</h1>
+  <form (ngSubmit)="onSubmit()">
+    <div>
+      <label for="username">Nom d'utilisateur:</label>
+      <input type="text" id="username" [(ngModel)]="username" name="username" required />
+    </div>
 
-  <div>
-    <label for="email">Email:</label>
-    <input type="email" id="email" [(ngModel)]="email" name="email" required />
-  </div>
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" id="email" [(ngModel)]="email" name="email" required />
+    </div>
 
-  <div>
-    <label for="password">Mot de passe:</label>
-    <input type="password" id="password" [(ngModel)]="password" name="password" required />
-  </div>
+    <div>
+      <label for="password">Mot de passe:</label>
+      <input type="password" id="password" [(ngModel)]="password" name="password" required />
+    </div>
 
-  <div>
-    <label for="userRole">Rôle:</label>
-    <select id="userRole" [(ngModel)]="userRole" name="userRole" required>
-      <option [ngValue]="0">Admin</option>
-      <option [ngValue]="1">Membre</option>
-      <option [ngValue]="2">Observateur</option>
-    </select>
-  </div>
+    <div>
+      <label for="userRole">Rôle:</label>
+      <select id="userRole" [(ngModel)]="userRole" name="userRole" required>
+        <option [ngValue]="0">Admin</option>
+        <option [ngValue]="1">Membre</option>
+        <option [ngValue]="2">Observateur</option>
+      </select>
+    </div>
 
-  <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+    <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
 
-  <button type="submit">S'inscrire</button>
-</form>
+    <button type="submit">S'inscrire</button>
+  </form>
+</div>

@@ -1,6 +1,7 @@
-<div class="login-container">
-  <h1>Connexion</h1>
+<div class="login-wrapper">
   <form (ngSubmit)="onSubmit()">
+    <h1>Connexion</h1>
+
     <div>
       <label for="email">Email</label>
       <input
@@ -12,6 +13,7 @@
         placeholder="Entrez votre email"
       />
     </div>
+
     <div>
       <label for="password">Mot de passe</label>
       <input
@@ -23,7 +25,9 @@
         placeholder="Entrez votre mot de passe"
       />
     </div>
+
     <button type="submit">Se connecter</button>
+
+    <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
   </form>
-  <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
 </div>

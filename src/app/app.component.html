@@ -1,14 +1,21 @@
 <header>
-  <h1>Project Management Tool - Projet ISCOD</h1>
+  <h1>Project Management Tool</h1>
   <nav>
-    <a routerLink="/login" *ngIf="!(isLoggedIn$ | async)">Connexion</a> |
-    <a routerLink="/register" *ngIf="!(isLoggedIn$ | async)">Inscription</a> |
-    <a routerLink="/projects">Projets</a> |
-    <button *ngIf="isLoggedIn$ | async" (click)="logout()" class="logout-btn">Déconnexion</button>
+    <!-- Bloc gauche : liens -->
+    <div class="nav-links">
+      <a routerLink="/login" *ngIf="!(isLoggedIn$ | async)">Connexion</a>
+      <a routerLink="/register" *ngIf="!(isLoggedIn$ | async)">Inscription</a>
+      <a routerLink="/projects" *ngIf="isLoggedIn$ | async">Projets</a>
+    </div>
+
+    <!-- Bloc droit : bouton de déconnexion -->
+    <div class="nav-right">
+      <button *ngIf="isLoggedIn$ | async" (click)="logout()" class="logout-btn">Déconnexion</button>
+    </div>
   </nav>
 </header>
 
-<!-- Endroit où les composants des routes seront affichés -->
+<!-- Affichage des composants selon les routes -->
 <router-outlet></router-outlet>
 
 <footer>

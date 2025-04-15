@@ -1,50 +1,108 @@
-/* === NAVBAR === */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  color: #1a1a1a;
+}
+
+/* --- HEADER --- */
+header {
+  background-color: #f8f8f8;
+  border-bottom: 1px solid #ddd;
+  padding: 20px;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+/* --- NAVIGATION --- */
 nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 12px 20px;
   background-color: #ffffff;
-  padding: 12px 24px;
-  border-bottom: 1px solid #ddd;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+  border-bottom: 1px solid #e6e6e6;
 }
 
-/* Bloc des liens */
-.nav-links {
-  display: flex;
-  gap: 20px;
-}
-
+/* Liens à gauche */
 .nav-links a {
+  margin-right: 20px;
   text-decoration: none;
   font-weight: 500;
-  font-size: 1rem;
-  color: #111;
-  transition: all 0.2s ease-in-out;
+  font-size: 0.95rem;
+  color: #222;
 }
 
 .nav-links a:hover {
   text-decoration: underline;
-  color: #555;
 }
 
-/* === Bouton Déconnexion === */
-.nav-right {
-  display: flex;
-  align-items: center;
-}
-
-.logout-btn {
-  background-color: #111;
-  color: #fff;
-  border: none;
+/* Déconnexion à droite */
+.nav-right .logout-btn {
+  background-color: transparent;
+  color: #1a1a1a;
+  border: 1px solid #bbb;
+  padding: 6px 14px;
+  font-size: 0.9rem;
   border-radius: 4px;
-  padding: 8px 16px;
-  font-size: 0.95rem;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
-.logout-btn:hover {
-  background-color: #000;
+.nav-right .logout-btn:hover {
+  background-color: #eee;
+}
+
+/* --- CONTENU PRINCIPAL --- */
+router-outlet {
+  display: block;
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 40px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+/* --- FOOTER --- */
+footer {
+  background-color: #fafafa;
+  border-top: 1px solid #ddd;
+  text-align: center;
+  padding: 16px 0;
+  font-size: 0.9rem;
+  color: #666;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  header h1 {
+    font-size: 1.4rem;
+  }
+
+  .nav-links a {
+    font-size: 0.85rem;
+    margin-right: 10px;
+  }
+
+  .nav-right .logout-btn {
+    font-size: 0.85rem;
+    padding: 5px 10px;
+  }
+
+  router-outlet {
+    margin: 20px;
+    padding: 25px;
+  }
 }
