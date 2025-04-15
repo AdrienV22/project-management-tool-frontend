@@ -9,6 +9,7 @@ interface ProjectReference {
 }
 
 interface ExtendedTask extends Task {
+  id?: number; // ✅ facultatif lors de la création
   parentProject?: ProjectReference;
 }
 
@@ -23,8 +24,7 @@ export class TaskListComponent implements OnInit {
   tasks: Task[] = [];
   projectMembers: any[] = [];
 
-  newTask!: ExtendedTask;  // ➤ on ne l'initialise pas ici
-
+  newTask!: ExtendedTask;
   editingTask: Task | null = null;
   errorMessage: string = '';
   successMessage: string = '';
@@ -38,17 +38,7 @@ export class TaskListComponent implements OnInit {
   constructor(private taskService: TaskService) {}
 
   ngOnInit(): void {
-    this.newTask = {
-      id: 0,
-      title: '',
-      description: '',
-      dueDate: '',
-      status: 'New',
-      priority: 'MOYENNE',
-      targetUserId: this.userId,
-      parentProject: { id: this.projectId },
-    };
-
+    this.resetNewTask();
     this.loadTasks();
     this.loadProjectMembers();
   }
@@ -153,11 +143,10 @@ export class TaskListComponent implements OnInit {
 
   private resetNewTask(): void {
     this.newTask = {
-      id: 0,
       title: '',
       description: '',
       dueDate: '',
-      status: 'New',
+      status: 'En attente', // ✅ statut accepté côté backend
       priority: 'MOYENNE',
       targetUserId: this.userId,
       parentProject: { id: this.projectId },

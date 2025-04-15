@@ -5,15 +5,17 @@ import { catchError } from 'rxjs/operators';
 
 // Définir un type Task
 export interface Task {
-  id: number;
+  id?: number; // ✅ au lieu de id: number
   title: string;
   description: string;
   dueDate: string;
   status: string;
-  priority: 'HAUTE' | 'MOYENNE' | 'BASSE';
+  priority: string;
   targetUserId: number;
+  parentProject?: { id: number };
   assigneeEmail?: string;
 }
+
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +25,6 @@ export class TaskService {
 
   constructor(private http: HttpClient) {}
 
-  // ✅ Récupérer les tâches pour un utilisateur et/ou un projet
   getTasks(userId?: number, projectId?: number): Observable<Task[]> {
     let params = new HttpParams();
     if (userId) params = params.set('userId', userId.toString());
