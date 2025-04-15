@@ -1,0 +1,122 @@
+/* Conteneur principal */
+.task-list-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+  
+  /* Titres */
+  h1, h2, h3, h4 {
+    font-weight: 500;
+    color: #111;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+  }
+  
+  /* Formulaires */
+  form {
+    margin-bottom: 30px;
+  }
+  
+  label {
+    display: block;
+    margin: 12px 0 6px;
+    font-size: 0.95rem;
+    color: #111;
+  }
+  
+  input,
+  textarea,
+  select {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    background-color: #fdfdfd;
+    transition: border 0.2s ease;
+  }
+  
+  input:focus,
+  textarea:focus,
+  select:focus {
+    border-color: #888;
+    outline: none;
+  }
+  
+  /* Boutons */
+  button {
+    padding: 10px 16px;
+    background-color: #eaeaea;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-weight: 500;
+  }
+  
+  button:hover {
+    background-color: #dcdcdc;
+  }
+  
+  /* Messages */
+  .error {
+    color: #991a1a;
+    background-color: #f4e3e3;
+    padding: 10px;
+    border: 1px solid #e0b4b4;
+    border-radius: 4px;
+    margin-bottom: 15px;
+  }
+  
+  .success {
+    color: #215e21;
+    background-color: #e4f4e4;
+    padding: 10px;
+    border: 1px solid #b8d8b8;
+    border-radius: 4px;
+    margin-bottom: 15px;
+  }
+  
+  /* Liste des tâches */
+  .task-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .task-list li {
+    background-color: #fdfdfd;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  
+  /* Historique */
+  .task-history {
+    background-color: #f6f6f6;
+    border-left: 4px solid #bbb;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 0.95rem;
+  }
+  
+  .old-value {
+    text-decoration: line-through;
+    color: #999;
+  }
+  
+  .new-value {
+    font-weight: 600;
+    color: #222;
+  }
+  
+  /* Filtre */
+  .filter {
+    margin: 25px 0;
+  }
+  

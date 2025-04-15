@@ -1,86 +1,101 @@
 .project-detail-container {
   max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 40px auto;
+  padding: 30px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+  font-family: 'Inter', sans-serif;
+  color: #1a1a1a;
 }
 
+/* Titres */
 h1 {
   font-size: 2rem;
-  color: #333;
-  margin-bottom: 15px;
-}
-
-.project-description {
-  font-size: 1.2rem;
-  color: #555;
   margin-bottom: 20px;
+  font-weight: 600;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 5px;
 }
 
+/* Description */
+.project-description {
+  font-size: 1.05rem;
+  margin-bottom: 25px;
+  line-height: 1.6;
+  color: #444;
+}
+
+/* Informations du projet */
 .project-info {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 16px;
+  margin-bottom: 25px;
 }
 
 .project-info div {
-  font-size: 1rem;
-  color: #333;
+  font-size: 0.95rem;
+  color: #2c2c2c;
 }
 
 .project-info strong {
-  color: #0066cc;
+  font-weight: 600;
 }
 
+/* Message d'erreur */
 .error-message {
+  color: #a94442;
+  background-color: #f2dede;
+  padding: 10px;
+  border-radius: 5px;
   margin-top: 20px;
-  color: red;
-  font-weight: bold;
-}
-
-.loading-spinner {
-  font-size: 1.5rem;
-  color: #007bff;
   text-align: center;
 }
 
-/* Style pour le bouton de modification */
+/* Chargement */
+.loading-spinner {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+/* Groupe de boutons */
+.button-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+/* Bouton modifier */
 .edit-button {
-  background-color: #ffcc00; /* Jaune-orange */
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 10px 15px;
+  background-color: #1a1a1a;
+  color: #ffffff;
+  padding: 10px 18px;
   font-size: 1rem;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s ease;
 }
 
 .edit-button:hover {
-  background-color: #e6b800; /* Plus foncé au survol */
+  background-color: #2f2f2f;
 }
 
-/* Style pour le bouton de suppression */
+/* Bouton supprimer */
 .delete-button {
-  background-color: #ff4d4d; /* Rouge */
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 10px 15px;
+  background-color: transparent;
+  color: #d32f2f;
+  border: 1px solid #d32f2f;
+  padding: 10px 18px;
   font-size: 1rem;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
 }
 
 .delete-button:hover {
-  background-color: #cc0000; /* Plus foncé au survol */
-}
-
-/* Ajout d'un espace entre les boutons */
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
+  background-color: #d32f2f;
+  color: #fff;
 }

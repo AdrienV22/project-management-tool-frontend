@@ -1,37 +1,80 @@
-/* src/app/components/task/task.component.css */
-
 /* Conteneur principal */
-.task-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  font-family: 'Inter', sans-serif;
-}
-
-/* Titre principal */
-.page-title {
-  font-size: 2rem;
-  margin-bottom: 20px;
-  text-align: center;
+.task-list-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #333;
 }
 
-/* Détails d'une tâche */
-.task-detail {
-  background-color: #fff;
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  margin-bottom: 20px;
+/* Titres */
+h1, h2, h3, h4 {
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #dcdcdc;
+  padding-bottom: 5px;
 }
 
-.task-description {
+/* Formulaires */
+form {
+  margin-bottom: 30px;
+}
+
+label {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 0.95rem;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fafafa;
+  transition: border 0.3s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: #888;
+  outline: none;
+}
+
+button {
+  padding: 8px 16px;
+  background-color: #f0f0f0;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  cursor: pointer;
   margin-top: 10px;
-  color: #555;
-  line-height: 1.5;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  background-color: #e0e0e0;
+}
+
+/* Messages */
+.error {
+  color: #a94442;
+  background-color: #f2dede;
+  padding: 8px;
+  border: 1px solid #ebccd1;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.success {
+  color: #3c763d;
+  background-color: #dff0d8;
+  padding: 8px;
+  border: 1px solid #d6e9c6;
+  border-radius: 4px;
+  margin-bottom: 15px;
 }
 
 /* Liste des tâches */
@@ -40,28 +83,32 @@
   padding: 0;
 }
 
-.task-item {
-  padding: 10px 15px;
-  margin-bottom: 10px;
-  background-color: #fff;
+.task-list li {
+  background-color: #f9f9f9;
   border: 1px solid #ddd;
-  border-radius: 8px;
-  transition: background-color 0.3s, transform 0.3s;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 15px;
 }
 
-.task-item:hover {
-  background-color: #f0f8ff;
-  transform: translateY(-2px);
-  cursor: pointer;
+/* Historique */
+.task-history {
+  background-color: #f4f4f4;
+  border-left: 3px solid #ccc;
+  padding: 10px;
+  margin-top: 10px;
 }
 
-/* Liens ou boutons */
-.task-item a {
-  text-decoration: none;
-  color: #0078d7;
+.old-value {
+  text-decoration: line-through;
+  color: #999;
+}
+
+.new-value {
   font-weight: bold;
 }
 
-.task-item a:hover {
-  text-decoration: underline;
+/* Filtre */
+.filter {
+  margin: 25px 0;
 }

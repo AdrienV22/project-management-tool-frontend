@@ -1,123 +1,50 @@
-/* Importation de la police moderne */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-
-/* Style général pour l'entête de l'application */
-header {
-  background-color: #5a9bff;  /* Bleu plus doux */
-  color: white;
-  padding: 20px;
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: 500;
-  font-family: 'Roboto', sans-serif;
-}
-
-/* Style pour la barre de navigation */
-/* Navbar */
-nav {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-nav a {
-  margin: 0 10px; /* Réduit la distance entre les liens */
-  text-decoration: none;
-  color: #ffffff;
-}
-
-nav button {
-  margin: 0 10px; /* Même espacement pour le bouton de déconnexion */
-}
-
-nav a:not(:last-child) {
-  margin-right: 10px; /* Ajoute un petit espace entre chaque lien */
-}
-
-/* Optionnel : styliser les séparateurs " | " */
-nav a::after {
-  content: '|';
-  margin: 0 10px;
-  color: #ffffff;
-}
-
-nav a:last-child::after {
-  content: ''; /* Retirer le séparateur après le dernier lien */
-}
-
-
-nav a:hover {
-  color: #f7c700; /* Couleur dorée au survol */
-}
-
-/* Style du contenu principal */
-router-outlet {
-  margin: 20px auto;
-  padding: 20px;
-  max-width: 900px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  font-family: 'Roboto', sans-serif;
-}
-
-/* Style du footer */
-footer {
-  background-color: #333;
-  color: white;
-  text-align: center;
-  padding: 15px 0;
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  font-size: 0.9rem;
-}
-
-/* Style de l'application pour garantir un espacement propre */
-body {
-  margin: 0;
-  font-family: 'Roboto', sans-serif;
-  background-color: #f0f0f0;
-  color: #333;
-}
-
-/* Ajout d'un peu de responsive pour les petits écrans */
-@media (max-width: 768px) {
-  header {
-    font-size: 1.2rem;
-  }
-
-  nav a {
-    font-size: 0.9rem;
-  }
-
-  footer {
-    font-size: 0.8rem;
-  }
-
-  router-outlet {
-    margin: 15px;
-    padding: 15px;
-  }
-}
-
+/* === NAVBAR === */
 nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: #ffffff;
+  padding: 12px 24px;
+  border-bottom: 1px solid #ddd;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+
+/* Bloc des liens */
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+  color: #111;
+  transition: all 0.2s ease-in-out;
+}
+
+.nav-links a:hover {
+  text-decoration: underline;
+  color: #555;
+}
+
+/* === Bouton Déconnexion === */
+.nav-right {
+  display: flex;
+  align-items: center;
 }
 
 .logout-btn {
-  background-color: #ff4d4f;
-  color: white;
+  background-color: #111;
+  color: #fff;
   border: none;
   border-radius: 4px;
-  padding: 8px 12px;
+  padding: 8px 16px;
+  font-size: 0.95rem;
   cursor: pointer;
-  font-size: 1rem;
   transition: background-color 0.3s ease;
 }
 
 .logout-btn:hover {
-  background-color: #d9363e;
+  background-color: #000;
 }
