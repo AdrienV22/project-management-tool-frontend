@@ -5,7 +5,7 @@ import { catchError } from 'rxjs/operators';
 
 // Définir un type Task
 export interface Task {
-  id?: number; // ✅ au lieu de id: number
+  id?: number; 
   title: string;
   description: string;
   dueDate: string;
