@@ -3,14 +3,15 @@ import { TaskService, Task } from '../../services/task.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';  // Assure-toi d'importer le service AuthService
+import { AuthService } from '../../services/auth.service';
+import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-task',
   templateUrl: './task.component.html',
   styleUrls: ['./task.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, DragDropModule]
 })
 export class TaskComponent implements OnInit {
 
@@ -102,17 +103,10 @@ export class TaskComponent implements OnInit {
   }
 
   // Méthodes pour le drag & drop
-  onDragStart(event: DragEvent, task: Task): void {
-    if (event.dataTransfer) {
-      event.dataTransfer.setData('text/plain', task.id.toString());
-    }
-  }
-
-  onDrop(event: DragEvent, newStatus: string): void {
-    event.preventDefault();
-    const taskId = event.dataTransfer?.getData('text/plain');
+  onDrop(event: CdkDragDrop<Task[]>, newStatus: string): void {
+    const taskId = event.item.data.id;
     if (taskId) {
-      const task = this.tasks.find(t => t.id.toString() === taskId);
+      const task = this.tasks.find(t => t.id === taskId);
       if (task) {
         task.status = newStatus;
         this.taskService.updateTask(task).subscribe(
@@ -137,18 +131,20 @@ export class TaskComponent implements OnInit {
   }
 
   updateTask(): void {
-    this.taskService.updateTask(this.editingTask).subscribe(
-      (updatedTask) => {
-        const index = this.tasks.findIndex(t => t.id === updatedTask.id);
-        if (index !== -1) {
-          this.tasks[index] = updatedTask;
+    if (this.editingTask.id) {
+      this.taskService.updateTask(this.editingTask).subscribe(
+        (updatedTask) => {
+          const index = this.tasks.findIndex(t => t.id === updatedTask.id);
+          if (index !== -1) {
+            this.tasks[index] = updatedTask;
+          }
+          this.closeEditModal();
+        },
+        (error) => {
+          console.error('Erreur lors de la mise à jour de la tâche', error);
         }
-        this.closeEditModal();
-      },
-      (error) => {
-        console.error('Erreur lors de la mise à jour de la tâche', error);
-      }
-    );
+      );
+    }
   }
 
   closeEditModal(): void {
