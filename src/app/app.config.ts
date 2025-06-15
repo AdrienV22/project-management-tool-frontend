@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { appRoutes } from './app.routes';
 import { provideHttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 // Importer les composants standalone
 import { AppComponent } from './app.component';
@@ -21,6 +22,7 @@ import { TaskListComponent } from './components/task-list/task-list.component'
     CommonModule,  // Importation de CommonModule pour *ngIf, *ngFor
     RouterModule.forRoot(appRoutes),  // Configuration des routes
     FormsModule,  // Importation de FormsModule pour les formulaires
+    DragDropModule, // Module pour le drag & drop
     LoginComponent,
     RegisterComponent,
     ProjectsComponent,

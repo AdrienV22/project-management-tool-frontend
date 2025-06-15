@@ -1,5 +1,6 @@
-<div class="task-list">
-  <h2>Liste des Tâches</h2>
+<!-- Tableau Kanban -->
+<div class="kanban-board">
+  <h2>Tableau des tâches</h2>
 
   <!-- Formulaire pour créer une nouvelle tâche -->
   <div class="create-task-form">
@@ -21,11 +22,11 @@
       </div>
 
       <div class="form-group">
-        <label for="status">Statut</label>
-        <select id="status" class="form-control" [(ngModel)]="task.status" name="status" required>
-          <option value="New">Nouveau</option>
-          <option value="In Progress">En cours</option>
-          <option value="Completed">Terminé</option>
+        <label for="priority">Priorité</label>
+        <select id="priority" class="form-control" [(ngModel)]="task.priority" name="priority" required>
+          <option value="BASSE">Basse</option>
+          <option value="MOYENNE">Moyenne</option>
+          <option value="HAUTE">Haute</option>
         </select>
       </div>
 
@@ -33,11 +34,104 @@
     </form>
   </div>
 
-  <!-- Liste des tâches -->
-  <div *ngFor="let task of tasks">
-    <p>{{ task.title }}</p>
-    <p>{{ task.description }}</p>
-    <p>{{ task.dueDate | date }}</p>
-    <p>{{ task.status }}</p>
+  <!-- Colonnes du tableau Kanban -->
+  <div class="kanban-columns">
+    <!-- Colonne Nouveau -->
+    <div class="kanban-column">
+      <h3>Nouveau</h3>
+      <div class="task-list" droppable (onDrop)="onDrop($event, 'New')">
+        <div class="task-card" *ngFor="let task of getTasksByStatus('New')" draggable (dragstart)="onDragStart($event, task)">
+          <h4>{{ task.title }}</h4>
+          <p>{{ task.description }}</p>
+          <div class="task-meta">
+            <span class="due-date">Échéance: {{ task.dueDate | date }}</span>
+            <span class="priority" [ngClass]="task.priority.toLowerCase()">{{ task.priority }}</span>
+          </div>
+          <div class="task-actions">
+            <button (click)="editTask(task)">Modifier</button>
+            <button (click)="deleteTask(task.id)">Supprimer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne En cours -->
+    <div class="kanban-column">
+      <h3>En cours</h3>
+      <div class="task-list" droppable (onDrop)="onDrop($event, 'In Progress')">
+        <div class="task-card" *ngFor="let task of getTasksByStatus('In Progress')" draggable (dragstart)="onDragStart($event, task)">
+          <h4>{{ task.title }}</h4>
+          <p>{{ task.description }}</p>
+          <div class="task-meta">
+            <span class="due-date">Échéance: {{ task.dueDate | date }}</span>
+            <span class="priority" [ngClass]="task.priority.toLowerCase()">{{ task.priority }}</span>
+          </div>
+          <div class="task-actions">
+            <button (click)="editTask(task)">Modifier</button>
+            <button (click)="deleteTask(task.id)">Supprimer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne Terminé -->
+    <div class="kanban-column">
+      <h3>Terminé</h3>
+      <div class="task-list" droppable (onDrop)="onDrop($event, 'Completed')">
+        <div class="task-card" *ngFor="let task of getTasksByStatus('Completed')" draggable (dragstart)="onDragStart($event, task)">
+          <h4>{{ task.title }}</h4>
+          <p>{{ task.description }}</p>
+          <div class="task-meta">
+            <span class="due-date">Échéance: {{ task.dueDate | date }}</span>
+            <span class="priority" [ngClass]="task.priority.toLowerCase()">{{ task.priority }}</span>
+          </div>
+          <div class="task-actions">
+            <button (click)="editTask(task)">Modifier</button>
+            <button (click)="deleteTask(task.id)">Supprimer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de modification de tâche -->
+<div class="modal" *ngIf="showEditModal">
+  <div class="modal-content">
+    <h3>Modifier la tâche</h3>
+    <form (ngSubmit)="updateTask()" #editForm="ngForm">
+      <div class="form-group">
+        <label for="editTitle">Titre</label>
+        <input id="editTitle" type="text" [(ngModel)]="editingTask.title" name="editTitle" required>
+      </div>
+      <div class="form-group">
+        <label for="editDescription">Description</label>
+        <textarea id="editDescription" [(ngModel)]="editingTask.description" name="editDescription" required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="editDueDate">Date d'échéance</label>
+        <input id="editDueDate" type="date" [(ngModel)]="editingTask.dueDate" name="editDueDate" required>
+      </div>
+      <div class="form-group">
+        <label for="editPriority">Priorité</label>
+        <select id="editPriority" [(ngModel)]="editingTask.priority" name="editPriority" required>
+          <option value="BASSE">Basse</option>
+          <option value="MOYENNE">Moyenne</option>
+          <option value="HAUTE">Haute</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="editStatus">Statut</label>
+        <select id="editStatus" [(ngModel)]="editingTask.status" name="editStatus" required>
+          <option value="New">Nouveau</option>
+          <option value="In Progress">En cours</option>
+          <option value="Completed">Terminé</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary">Sauvegarder</button>
+        <button type="button" (click)="closeEditModal()" class="btn-secondary">Annuler</button>
+      </div>
+    </form>
   </div>
 </div>
