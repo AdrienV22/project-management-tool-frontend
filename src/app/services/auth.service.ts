@@ -3,34 +3,48 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
-type LoginResponse = {
+export type LoginResponse = {
   token: string;
   userId: number;
   email: string;
   username?: string;
-  role?: string; // selon ton backend
+  role?: string;
 };
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class AuthService {
+
   private apiUrl = 'http://localhost:8080/api/auth';
 
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
-  isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
+  private isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
+  // ===============================
+  // AUTHENTIFICATION
+  // ===============================
+
   login(email: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
-      tap((res) => {
-        if (res?.token) {
-          this.setLoggedIn(res.email ?? email, res.userId, res.token);
-        }
-      })
-    );
+    return this.http
+      .post<LoginResponse>(`${this.apiUrl}/login`, { email, password })
+      .pipe(
+        tap((res) => {
+          if (res?.token) {
+            this.setLoggedIn(res.email ?? email, res.userId, res.token);
+          }
+        })
+      );
   }
 
-  register(userData: { username: string; email: string; password: string; userRole: number }): Observable<any> {
+  register(userData: {
+    username: string;
+    email: string;
+    password: string;
+    userRole: number;
+  }): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, userData);
   }
 
@@ -41,7 +55,10 @@ export class AuthService {
     this.isAuthenticatedSubject.next(false);
   }
 
-  // ✅ Recrée la méthode attendue par LoginComponent
+  // ===============================
+  // ETAT AUTH
+  // ===============================
+
   setLoggedIn(email: string, userId: number, token: string): void {
     localStorage.setItem('token', token);
     localStorage.setItem('userEmail', email);
@@ -53,6 +70,14 @@ export class AuthService {
     return this.hasToken();
   }
 
+  getAuthStatus(): Observable<boolean> {
+    return this.isAuthenticated$;
+  }
+
+  // ===============================
+  // GETTERS UTILES
+  // ===============================
+
   getToken(): string | null {
     return localStorage.getItem('token');
   }
@@ -62,9 +87,13 @@ export class AuthService {
   }
 
   getUserId(): number | null {
-    const v = localStorage.getItem('userId');
-    return v ? Number(v) : null;
+    const value = localStorage.getItem('userId');
+    return value ? Number(value) : null;
   }
+
+  // ===============================
+  // PRIVATE
+  // ===============================
 
   private hasToken(): boolean {
     return !!localStorage.getItem('token');
