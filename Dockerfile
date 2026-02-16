@@ -1,38 +1,37 @@
-# Étape 1 : Build de l'app Angular
+# ===============================
+# Stage 1 — Build Angular
+# ===============================
 FROM node:21.7.1-alpine3.19 AS build
 WORKDIR /app
 
-# Copier seulement les fichiers nécessaires (évite de copier tout le répertoire)
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm ci
+
 COPY . .
 RUN npm run build -- --configuration production --project project-management-tool-frontend
 
-# Étape 2 : Utilisation de Nginx pour servir les fichiers buildés
-FROM nginx:1.25.4-alpine-slim
+# ===============================
+# Stage 2 — Nginx runtime
+# ===============================
+FROM nginx:1.25.4-alpine-slim AS runtime
 
-# Security hardening
-RUN apk add --no-cache tini && \
-    rm -rf /var/cache/apk/* && \
-    chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html && \
-    # Remove unnecessary files
-    rm -rf /etc/nginx/conf.d/default.conf && \
-    rm -rf /usr/share/nginx/html/* && \
-    # Create non-root user
-    adduser -D -H -u 101 -s /sbin/nologin nginx && \
-    # Set proper permissions
-    chown -R nginx:nginx /var/cache/nginx /var/log/nginx /var/run/nginx.pid
+# Install tini + clean default content
+RUN apk add --no-cache tini \
+  && rm -rf /var/cache/apk/* \
+  && rm -f /etc/nginx/conf.d/default.conf \
+  && rm -rf /usr/share/nginx/html/*
 
-# Add custom nginx config
+# Nginx config
+# Option A (recommandé) : tu fournis un default.conf (server block)
+# COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Option B (si ton nginx.conf est un fichier "main" complet)
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copier les fichiers buildés dans le répertoire de NGINX
+# Copy build output
 COPY --from=build /app/dist/project-management-tool-frontend /usr/share/nginx/html
 
-# Exposer le port NGINX
 EXPOSE 80
 
-# Use tini as init system
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["nginx", "-g", "daemon off;"]
