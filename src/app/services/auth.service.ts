@@ -1,75 +1,110 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';  // Ajoute cette ligne pour pouvoir utiliser tap
+import { tap } from 'rxjs/operators';
 
+type LoginResponse = {
+  message?: string;
+  status?: string;
+  token: string;
+  userId: number;
+  username?: string;
+  email: string;
+  role: string; // ADMIN / MEMBER / OBSERVER (selon ton enum backend)
+};
 
 @Injectable({
-  providedIn: 'root', // Service disponible dans toute l'application
+  providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/api/auth'; // URL de l'API backend
-  private projectsApiUrl = 'http://localhost:8080/api/projects'; // URL pour récupérer les projets
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.isLoggedIn()); // État de l'authentification via BehaviorSubject
-  private isAuthenticated: boolean = false; // État de connexion utilisateur
+  private apiUrl = 'http://localhost:8080/api/auth';
+  private projectsApiUrl = 'http://localhost:8080/api/projects';
+
+  private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
 
   constructor(private http: HttpClient) {}
 
-  // Méthode pour se connecter
-  login(email: string, password: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, { email, password }).pipe(
-      tap((response: any) => {
-        if (response && response.token) {
-          this.setLoggedIn(response.email, response.userId);  // Stocker email et ID utilisateur
-        }
+  // ===== AUTH =====
+
+  login(email: string, password: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
+      tap((response) => {
+        // Backend renvoie token + infos user
+        this.setSession(response);
       })
     );
   }
 
-  // Méthode pour s'inscrire
   register(userData: { username: string; email: string; password: string; userRole: number }): Observable<any> {
+    // Si ton backend renvoie aussi un token au register (optionnel), tu pourras faire pareil qu'au login :
+    // .pipe(tap((res: any) => res?.token ? this.setSession(res) : null))
     return this.http.post(`${this.apiUrl}/register`, userData);
   }
 
-  // Méthode pour récupérer les projets de l'utilisateur
-  getUserProjects(email: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.projectsApiUrl}?email=${email}`);
-  }
-
-  // Méthode pour se déconnecter
   logout(): void {
-    this.isAuthenticated = false; // Réinitialiser l'état d'authentification
-    localStorage.removeItem('userEmail'); // Supprimer l'email de l'utilisateur dans le localStorage
-    localStorage.removeItem('userId'); // Supprimer l'ID de l'utilisateur
-    localStorage.removeItem('token'); // Supprimer le token si nécessaire
-    this.isAuthenticatedSubject.next(this.isAuthenticated); // Met à jour le BehaviorSubject pour notifier les composants abonnés
+    this.clearSession();
   }
 
-  // Définir un utilisateur comme connecté
-  setLoggedIn(email: string, userId: number): void {
-    this.isAuthenticated = true; // Marquer l'utilisateur comme authentifié
-    localStorage.setItem('userEmail', email); // Sauvegarder l'email dans le localStorage
-    localStorage.setItem('userId', userId.toString()); // Sauvegarder l'ID de l'utilisateur dans le localStorage
-    this.isAuthenticatedSubject.next(this.isAuthenticated); // Met à jour le BehaviorSubject pour notifier les composants abonnés
+  // ===== SESSION STORAGE =====
+
+  private setSession(data: LoginResponse): void {
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('userId', String(data.userId));
+    localStorage.setItem('userEmail', data.email);
+    localStorage.setItem('userRole', data.role);
+
+    this.isAuthenticatedSubject.next(true);
   }
 
-  // Vérifie si l'utilisateur est connecté
+  private clearSession(): void {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userRole');
+
+    this.isAuthenticatedSubject.next(false);
+  }
+
+  private hasToken(): boolean {
+    const token = localStorage.getItem('token');
+    return !!token && token.trim().length > 0;
+  }
+
+  // ===== GETTERS =====
+
   isLoggedIn(): boolean {
-    return this.isAuthenticated || !!localStorage.getItem('userEmail');
+    return this.hasToken();
   }
 
-  // Récupérer l'email de l'utilisateur connecté
+  getToken(): string | null {
+    return localStorage.getItem('token');
+  }
+
+  getUserId(): number | null {
+    const raw = localStorage.getItem('userId');
+    if (!raw) return null;
+    const id = Number(raw);
+    return Number.isFinite(id) && id > 0 ? id : null;
+  }
+
   getLoggedInUserEmail(): string | null {
     return localStorage.getItem('userEmail');
   }
 
-  // Récupérer l'ID de l'utilisateur connecté
-  getUserId(): number | null {
-    return parseInt(localStorage.getItem('userId') || '0', 10);  // Retourner l'ID de l'utilisateur ou null
+  getRole(): string | null {
+    return localStorage.getItem('userRole');
   }
 
-  // Observable pour surveiller l'état d'authentification
+  // ===== OBSERVABLE =====
+
   getAuthStatus(): Observable<boolean> {
-    return this.isAuthenticatedSubject.asObservable(); // Retourne l'observable pour l'état d'authentification
+    return this.isAuthenticatedSubject.asObservable();
+  }
+
+  // ===== API EXAMPLE =====
+
+  getUserProjects(email: string): Observable<any[]> {
+    // IMPORTANT : cette route devra être appelée avec Authorization Bearer token via Interceptor.
+    return this.http.get<any[]>(`${this.projectsApiUrl}?email=${encodeURIComponent(email)}`);
   }
 }
