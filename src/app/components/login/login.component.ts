@@ -11,46 +11,48 @@ import { FormsModule } from '@angular/forms';
   imports: [FormsModule, CommonModule],
 })
 export class LoginComponent {
-  email: string = '';
-  password: string = '';
+  email = '';
+  password = '';
   errorMessage: string | null = null;
+  isLoading = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  onSubmit() {
-    // Vérification des champs requis
-    if (!this.email || !this.password) {
+  onSubmit(): void {
+    this.errorMessage = null;
+
+    // Validation minimale
+    if (!this.email?.trim() || !this.password?.trim()) {
       this.errorMessage = 'Veuillez remplir tous les champs.';
       return;
     }
 
-    // Appel au service de connexion
-    this.authService.login(this.email, this.password).subscribe(
-      (response: any) => {
-        // Vérifie que la réponse contient un ID utilisateur
-        if (response && response.userId) {
-          // Sauvegarde de l'état de connexion avec l'email et l'ID utilisateur
-          this.authService.setLoggedIn(this.email, response.userId);
+    this.isLoading = true;
 
-          // Redirection vers la page des projets
-          this.router.navigate(['/projects']);
-        } else {
-          // Gestion d'une réponse incorrecte
-          this.errorMessage = "Erreur : L'ID utilisateur est introuvable.";
+    this.authService.login(this.email.trim(), this.password).subscribe({
+      next: (response: any) => {
+
+        if (response?.token && response?.userId) {
+          
+          this.authService.setLoggedIn(response.email ?? this.email.trim(), response.userId, response.token);
         }
+
+        this.isLoading = false;
+        this.router.navigate(['/projects']);
       },
-      (error) => {
+      error: (error) => {
+        this.isLoading = false;
         console.error('Erreur lors de la connexion:', error);
 
-        // Gestion des erreurs avec des messages clairs pour l'utilisateur
-        if (error.status === 404) {
+
+        if (error?.status === 400 || error?.status === 401) {
+          this.errorMessage = 'Email ou mot de passe incorrect.';
+        } else if (error?.status === 404) {
           this.errorMessage = 'Utilisateur non trouvé.';
-        } else if (error.status === 401) {
-          this.errorMessage = 'Mot de passe incorrect.';
         } else {
-          this.errorMessage = 'Erreur inconnue. Veuillez réessayer.';
+          this.errorMessage = 'Erreur serveur. Veuillez réessayer.';
         }
-      }
-    );
+      },
+    });
   }
 }
