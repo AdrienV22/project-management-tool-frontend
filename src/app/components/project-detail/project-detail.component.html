@@ -1,127 +1,200 @@
 <div class="project-detail-container" *ngIf="!loading; else loadingTemplate">
-  <h1>Détails du projet : {{ project.name }}</h1>
-  <p class="project-description">{{ project.description }}</p>
+  <header class="project-header">
+    <h1>Détails du projet : {{ project?.name }}</h1>
+    <p class="project-description">{{ project?.description }}</p>
+  </header>
 
-  <!-- Affichage des détails du projet -->
-  <form *ngIf="!isEditing; else editFormTemplate">
+  <!-- ========= MODE LECTURE ========= -->
+  <form *ngIf="!isEditing; else editFormTemplate" class="project-readonly" aria-label="Détails du projet">
     <div class="project-info">
-      <div><strong>Date de début :</strong> {{ project.startDate | date }}</div>
-      <div><strong>Date de fin :</strong> {{ project.endDate | date }}</div>
-      <div><strong>Statut :</strong> {{ project.statut }}</div>
-      <div><strong>Chef de projet :</strong> <strong>{{ project.client }}</strong></div>
+      <div><strong>Date de début :</strong> {{ project?.startDate | date }}</div>
+      <div><strong>Date de fin :</strong> {{ project?.endDate | date }}</div>
+      <div><strong>Statut :</strong> {{ project?.statut }}</div>
+      <div><strong>Chef de projet :</strong> <strong>{{ project?.clientEmail }}</strong></div>
     </div>
 
-    <!-- Boutons d'action -->
     <div class="button-group">
-      <button 
-        type="button" 
-        (click)="enableEditMode()" 
-        class="edit-button" 
-        aria-label="Modifier le projet">
+      <button type="button" (click)="enableEditMode()" class="edit-button" aria-label="Modifier le projet">
         Modifier
       </button>
-      <button 
-        type="button" 
-        (click)="confirmDelete()" 
-        class="delete-button" 
-        aria-label="Supprimer le projet">
+      <button type="button" (click)="confirmDelete()" class="delete-button" aria-label="Supprimer le projet">
         Supprimer
       </button>
     </div>
   </form>
 
-  <!-- Formulaire de modification -->
+  <!-- ========= MODE ÉDITION ========= -->
   <ng-template #editFormTemplate>
-    <form (ngSubmit)="updateProject()">
+    <form (ngSubmit)="updateProject()" class="project-edit" aria-label="Modifier le projet">
       <div class="form-group">
         <label for="name">Nom du projet :</label>
         <input type="text" id="name" [(ngModel)]="project.name" name="name" required />
       </div>
+
       <div class="form-group">
         <label for="description">Description :</label>
         <textarea id="description" [(ngModel)]="project.description" name="description" required></textarea>
       </div>
+
       <div class="form-group">
         <label for="startDate">Date de début :</label>
         <input type="date" id="startDate" [(ngModel)]="project.startDate" name="startDate" required />
       </div>
+
       <div class="form-group">
         <label for="endDate">Date de fin :</label>
-        <input type="date" id="endDate" [(ngModel)]="project.endDate" name="endDate" required />
+        <input type="date" id="endDate" [(ngModel)]="project.endDate" name="endDate" />
       </div>
+
       <div class="form-group">
         <label for="statut">Statut :</label>
-        <select id="statut" [(ngModel)]="project.statut" name="statut">
+        <select id="statut" [(ngModel)]="project.statut" name="statut" required>
+          <option value="Non défini">Non défini</option>
           <option value="En attente">En attente</option>
           <option value="En cours">En cours</option>
           <option value="Terminé">Terminé</option>
         </select>
       </div>
+
       <div class="form-group">
         <label for="clientEmail">Chef de projet (Email) :</label>
-        <input type="email" id="clientEmail" [(ngModel)]="project.clientEmail" name="clientEmail" required #emailField="ngModel" />
+        <input
+          type="email"
+          id="clientEmail"
+          [(ngModel)]="project.clientEmail"
+          name="clientEmail"
+          required
+          #emailField="ngModel"
+        />
         <div *ngIf="emailField.invalid && emailField.touched" class="error">
           Veuillez entrer un email valide.
         </div>
       </div>
 
       <div class="button-group">
-        <button type="submit" class="save-btn" aria-label="Enregistrer les modifications">Enregistrer</button>
-        <button type="button" (click)="cancelEditMode()" class="cancel-btn" aria-label="Annuler les modifications">Annuler</button>
+        <button type="submit" class="save-btn" aria-label="Enregistrer les modifications">
+          Enregistrer
+        </button>
+        <button type="button" (click)="cancelEditMode()" class="cancel-btn" aria-label="Annuler les modifications">
+          Annuler
+        </button>
       </div>
     </form>
   </ng-template>
 
-  <!-- Formulaire d'invitation -->
-  <div class="invite-member">
+  <!-- ========= INVITER MEMBRE (PAGE PROJET) ========= -->
+  <section class="invite-member" aria-label="Inviter un membre">
     <h3>Inviter un membre au projet</h3>
-    <form (ngSubmit)="inviteMember()" #inviteForm="ngForm">
-      <input type="email" [(ngModel)]="inviteEmail" name="email" required placeholder="Adresse email" />
-      <select [(ngModel)]="inviteRole" name="role" required>
+
+    <form (ngSubmit)="inviteMember()" #inviteForm="ngForm" class="invite-form">
+      <input
+        type="email"
+        [(ngModel)]="inviteEmail"
+        name="inviteEmail"
+        required
+        placeholder="Adresse email"
+      />
+
+      <select [(ngModel)]="inviteRole" name="inviteRole" required>
         <option value="ADMIN">Administrateur</option>
         <option value="MEMBRE">Membre</option>
         <option value="OBSERVATEUR">Observateur</option>
       </select>
+
       <button type="submit" [disabled]="!inviteForm.form.valid">Inviter</button>
     </form>
-  </div>
+  </section>
 
-  <!-- Formulaire de création de tâche -->
-  <div class="task-creation">
-    <h3>Créer une tâche pour ce projet</h3>
-    <form (ngSubmit)="createTask()" #taskForm="ngForm">
-      <input type="text" name="title" placeholder="Titre" [(ngModel)]="newTask.title" required />
-      <textarea name="description" placeholder="Description" [(ngModel)]="newTask.description" required></textarea>
-      <input type="date" name="dueDate" [(ngModel)]="newTask.dueDate" required />
-      <select name="priority" [(ngModel)]="newTask.priority" required>
-        <option value="LOW">Basse</option>
-        <option value="MEDIUM">Moyenne</option>
-        <option value="HIGH">Haute</option>
-      </select>
-      <button type="submit" [disabled]="!taskForm.form.valid">Créer la tâche</button>
-    </form>
-  </div>
-
-  <!-- Liste des membres avec modification du rôle -->
-  <div class="project-members" *ngIf="project.userList?.length">
+  <!-- ========= MEMBRES + CHANGEMENT DE RÔLE ========= -->
+  <section class="project-members" *ngIf="members?.length" aria-label="Membres du projet">
     <h3>Membres du projet</h3>
+
     <ul>
-      <li *ngFor="let member of project.userList">
+      <li *ngFor="let member of members">
         <span>{{ member.username }} ({{ member.email }})</span>
-        <select [(ngModel)]="member.userRole" (change)="changeUserRole(member)">
+
+        <select
+          [(ngModel)]="member.role"
+          (change)="changeUserRole(member)"
+          [name]="'memberRole-' + member.userId"
+        >
           <option value="ADMIN">Admin</option>
           <option value="MEMBRE">Membre</option>
           <option value="OBSERVATEUR">Observateur</option>
         </select>
       </li>
     </ul>
-  </div>
+  </section>
 
-  <!-- Affichage des erreurs -->
-  <div *ngIf="error" class="error-message">{{ error }}</div>
+  <!-- ========= CRÉATION TÂCHE ========= -->
+  <section class="task-creation" aria-label="Créer une tâche">
+    <h3>Créer une tâche pour ce projet</h3>
+
+    <form (ngSubmit)="createTask()" #taskForm="ngForm" class="task-form">
+      <input
+        type="text"
+        name="title"
+        placeholder="Titre (min 5 caractères)"
+        [(ngModel)]="newTask.title"
+        required
+        minlength="5"
+      />
+
+      <textarea
+        name="description"
+        placeholder="Description (min 5 caractères)"
+        [(ngModel)]="newTask.description"
+        required
+        minlength="5"
+      ></textarea>
+
+      <input type="date" name="dueDate" [(ngModel)]="newTask.dueDate" />
+
+      <select name="status" [(ngModel)]="newTask.status" required>
+        <option value="En attente">En attente</option>
+        <option value="En cours">En cours</option>
+        <option value="Terminé">Terminé</option>
+      </select>
+
+      <select name="priority" [(ngModel)]="newTask.priority" required>
+        <option value="BASSE">Basse</option>
+        <option value="MOYENNE">Moyenne</option>
+        <option value="HAUTE">Haute</option>
+      </select>
+
+      <select name="targetUserId" [(ngModel)]="newTask.targetUserId" required>
+        <option [ngValue]="newTask.targetUserId">-- Assigner à --</option>
+        <option *ngFor="let m of members" [ngValue]="m.userId">
+          {{ m.username }} ({{ m.role }})
+        </option>
+      </select>
+
+      <button type="submit" [disabled]="!taskForm.form.valid">Créer la tâche</button>
+    </form>
+  </section>
+
+  <!-- ========= LISTE TÂCHES (optionnel mais pratique pour valider) ========= -->
+  <section class="tasks-list" *ngIf="tasks?.length" aria-label="Tâches du projet">
+    <h3>Tâches du projet</h3>
+
+    <ul>
+      <li *ngFor="let t of tasks">
+        <strong>{{ t.title }}</strong>
+        <span> — {{ t.status }} / {{ t.priority }}</span>
+        <button type="button" (click)="loadHistory(t.id!)" aria-label="Voir historique">
+          Historique
+        </button>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ========= ERREURS ========= -->
+  <div *ngIf="error" class="error-message" role="alert">
+    {{ error }}
+  </div>
 </div>
 
-<!-- Template de chargement -->
+<!-- ========= LOADING ========= -->
 <ng-template #loadingTemplate>
   <div class="loading-spinner">Chargement...</div>
 </ng-template>

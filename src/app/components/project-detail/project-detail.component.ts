@@ -1,67 +1,96 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ProjectService } from '../../services/project.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Observable } from 'rxjs';
+
+import { ProjectService } from '../../services/project.service';
+import { AuthService } from '../../services/auth.service';
+import { TaskService, Task } from '../../services/task.service';
 
 @Component({
   selector: 'app-project-detail',
   templateUrl: './project-detail.component.html',
   styleUrls: ['./project-detail.component.css'],
-  standalone: true, 
-  imports: [CommonModule, FormsModule], 
+  standalone: true,
+  imports: [CommonModule, FormsModule],
 })
 export class ProjectDetailComponent implements OnInit {
   project: any = {};
-  loading: boolean = true;
-  error: string | null = null; 
-  isEditing: boolean = false;
+  members: any[] = [];
+  tasks: Task[] = [];
 
-  inviteEmail: string = '';
-  inviteRole: string = 'MEMBRE';
+  loading = true;
+  error: string | null = null;
+  isEditing = false;
 
-  newTask: any = {
+  inviteEmail = '';
+  inviteRole: 'ADMIN' | 'MEMBRE' | 'OBSERVATEUR' = 'MEMBRE';
+
+  newTask: Task = {
     title: '',
     description: '',
-    dueDate: '',
-    priority: 'MEDIUM'
+    dueDate: null,
+    status: 'En cours',
+    priority: 'MOYENNE',
+    targetUserId: 0,
+    project: { id: 0 }
   };
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private authService: AuthService,
+    private taskService: TaskService
   ) {}
 
   ngOnInit(): void {
-    const projectId = this.route.snapshot.paramMap.get('id');
-    if (projectId) {
-      this.fetchProjectDetails(projectId);
-    }
+    const projectIdStr = this.route.snapshot.paramMap.get('id');
+    if (!projectIdStr) return;
+
+    const projectId = Number(projectIdStr);
+    this.fetchProject(projectId);
+    this.loadMembers(projectId);
+    this.loadTasks(projectId);
+
+    const currentUserId = this.authService.getUserId();
+    if (currentUserId) this.newTask.targetUserId = currentUserId;
+    this.newTask.project = { id: projectId };
   }
 
-  fetchProjectDetails(id: string): void {
+  private fetchProject(projectId: number): void {
     this.loading = true;
-    this.projectService.getProjectById(+id).subscribe(
-      (data) => {
+    this.projectService.getProjectById(projectId).subscribe({
+      next: (data) => {
         this.project = data;
         this.loading = false;
       },
-      (error) => {
+      error: () => {
         this.error = 'Erreur lors du chargement du projet';
         this.loading = false;
       }
-    );
+    });
   }
 
-  enableEditMode(): void {
-    this.isEditing = true;
+  private loadMembers(projectId: number): void {
+    this.projectService.getProjectMembers(projectId).subscribe({
+      next: (data) => (this.members = data),
+      error: (e) => console.error('Erreur members', e)
+    });
   }
+
+  private loadTasks(projectId: number): void {
+    this.taskService.getTasks({ projectId }).subscribe({
+      next: (data) => (this.tasks = data),
+      error: (e) => console.error('Erreur tasks', e)
+    });
+  }
+
+  enableEditMode(): void { this.isEditing = true; }
 
   cancelEditMode(): void {
     this.isEditing = false;
-    this.fetchProjectDetails(this.project.id);
+    this.fetchProject(this.project.id);
   }
 
   updateProject(): void {
@@ -70,83 +99,85 @@ export class ProjectDetailComponent implements OnInit {
     const updatedProject = {
       ...this.project,
       statut: this.project.statut || 'Non défini',
-      clientEmail: this.project.clientEmail || 'Inconnu',
+      clientEmail: this.project.clientEmail || this.authService.getLoggedInUserEmail() || 'inconnu',
     };
 
-    this.projectService.updateProject(this.project.id, updatedProject).subscribe(
-      () => {
+    this.projectService.updateProject(this.project.id, updatedProject).subscribe({
+      next: () => {
         this.isEditing = false;
-        this.fetchProjectDetails(this.project.id);
+        this.fetchProject(this.project.id);
         this.loading = false;
       },
-      () => {
+      error: () => {
         this.error = 'Erreur lors de la mise à jour';
         this.loading = false;
       }
-    );
+    });
   }
 
   confirmDelete(): void {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) {
-      this.loading = true;
-      this.projectService.deleteProject(this.project.id).subscribe(
-        () => {
-          this.router.navigate(['/projects']);
-        },
-        () => {
-          this.error = 'Erreur lors de la suppression';
-          this.loading = false;
-        }
-      );
-    }
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) return;
+
+    this.loading = true;
+    this.projectService.deleteProject(this.project.id).subscribe({
+      next: () => this.router.navigate(['/projects']),
+      error: () => {
+        this.error = 'Erreur lors de la suppression';
+        this.loading = false;
+      }
+    });
   }
 
   inviteMember(): void {
-    if (!this.project || !this.project.id || !this.inviteEmail || !this.inviteRole) return;
+    if (!this.project?.id || !this.inviteEmail || !this.inviteRole) return;
 
-    this.projectService
-      .addUserToProject(this.project.id, this.inviteEmail, this.inviteRole)
-      .subscribe({
-        next: () => {
-          console.log('Membre invité avec succès');
-          this.inviteEmail = '';
-          this.inviteRole = 'MEMBRE';
-          this.fetchProjectDetails(this.project.id);
-        },
-        error: () => {
-          console.error('Erreur lors de l’invitation');
-        }
-      });
+    this.projectService.addUserToProject(this.project.id, this.inviteEmail, this.inviteRole).subscribe({
+      next: () => {
+        this.inviteEmail = '';
+        this.inviteRole = 'MEMBRE';
+        this.loadMembers(this.project.id);
+      },
+      error: (e) => console.error('Erreur invitation', e)
+    });
   }
 
   changeUserRole(member: any): void {
-    this.projectService
-      .addUserToProject(this.project.id, member.email, member.userRole)
-      .subscribe({
-        next: () => {
-          console.log(`Rôle mis à jour pour ${member.email}`);
-        },
-        error: () => {
-          console.error(`Erreur lors de la mise à jour du rôle pour ${member.email}`);
-        }
-      });
+    if (!member?.email || !member?.role) return;
+    this.projectService.addUserToProject(this.project.id, member.email, member.role).subscribe({
+      next: () => this.loadMembers(this.project.id),
+      error: (e) => console.error('Erreur role', e)
+    });
   }
 
   createTask(): void {
-    const taskToSend = {
+    if (!this.project?.id) return;
+
+    const payload: Task = {
       ...this.newTask,
-      parentProject: this.project
+      project: { id: this.project.id },
     };
 
-    this.projectService.createTask(taskToSend).subscribe({
-      next: (createdTask) => {
-        console.log('Tâche créée :', createdTask);
-        this.newTask = { title: '', description: '', dueDate: '', priority: 'MEDIUM' };
-        this.fetchProjectDetails(this.project.id);
+    this.taskService.createTask(payload).subscribe({
+      next: () => {
+        this.newTask = {
+          title: '',
+          description: '',
+          dueDate: null,
+          status: 'En cours',
+          priority: 'MOYENNE',
+          targetUserId: this.authService.getUserId() || 0,
+          project: { id: this.project.id }
+        };
+        this.loadTasks(this.project.id);
       },
-      error: () => {
-        console.error('Erreur lors de la création de la tâche');
-      }
+      error: (e) => console.error('Erreur création tâche', e)
+    });
+  }
+
+  loadHistory(taskId: number): void {
+    this.taskService.getTaskHistory(taskId).subscribe({
+      next: (h) => console.log('History', h),
+      error: (e) => console.error('History error', e)
     });
   }
 }

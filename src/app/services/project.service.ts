@@ -7,7 +7,6 @@ import { Observable, catchError, throwError } from 'rxjs';
 })
 export class ProjectService {
   private apiUrl = 'http://localhost:8080/api/projects';
-  private tasksUrl = 'http://localhost:8080/api/tasks';
 
   constructor(private http: HttpClient) {}
 
@@ -24,8 +23,8 @@ export class ProjectService {
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
     return this.http.post<any>(this.apiUrl, project, { headers }).pipe(
       catchError((error) => {
-        console.error('Erreur lors de l\'ajout du projet:', error);
-        return throwError(() => new Error('Erreur lors de l\'ajout du projet'));
+        console.error("Erreur lors de l'ajout du projet:", error);
+        return throwError(() => new Error("Erreur lors de l'ajout du projet"));
       })
     );
   }
@@ -58,24 +57,23 @@ export class ProjectService {
     );
   }
 
-  // ✅ Invitation membre (backend: PUT /api/projects/{projectId}/users?userEmail=...&role=...)
+  /** ✅ BACKEND: PUT /api/projects/{projectId}/users  body: { email, role } */
   addUserToProject(projectId: number, email: string, role: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${projectId}/users`, null, {
-      params: { userEmail: email, role }
-    }).pipe(
+    const body = { email, role };
+    return this.http.put(`${this.apiUrl}/${projectId}/users`, body).pipe(
       catchError((error) => {
-        console.error('Erreur lors de l\'invitation du membre:', error);
-        return throwError(() => new Error('Erreur d\'invitation'));
+        console.error("Erreur lors de l'invitation du membre:", error);
+        return throwError(() => new Error("Erreur d'invitation"));
       })
     );
   }
 
-  // ✅ Cohérence swagger: POST /api/tasks
-  createTask(task: any): Observable<any> {
-    return this.http.post(this.tasksUrl, task).pipe(
+  /** ✅ BACKEND: GET /api/projects/{projectId}/users */
+  getProjectMembers(projectId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${projectId}/users`).pipe(
       catchError((error) => {
-        console.error('Erreur lors de la création de la tâche :', error);
-        return throwError(() => new Error('Erreur de création de la tâche'));
+        console.error('Erreur lors de la récupération des membres:', error);
+        return throwError(() => new Error('Erreur de récupération des membres'));
       })
     );
   }

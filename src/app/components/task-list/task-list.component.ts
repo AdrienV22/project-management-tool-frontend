@@ -9,8 +9,8 @@ interface ProjectReference {
 }
 
 interface ExtendedTask extends Task {
-  id?: number; // ✅ facultatif lors de la création
-  parentProject?: ProjectReference;
+  id?: number;
+  project: ProjectReference; 
 }
 
 @Component({
@@ -26,134 +26,156 @@ export class TaskListComponent implements OnInit {
 
   newTask!: ExtendedTask;
   editingTask: Task | null = null;
-  errorMessage: string = '';
-  successMessage: string = '';
-  selectedStatus: string = '';
+
+  errorMessage = '';
+  successMessage = '';
+
+  selectedStatus = '';
   selectedTaskHistory: any[] = [];
   visibleHistoryTaskId: number | null = null;
 
-  userId: number = 26;
-  projectId: number = 26;
+
+  userId = 26;
+  projectId = 26;
 
   constructor(private taskService: TaskService) {}
 
   ngOnInit(): void {
+    this.resetMessages();
     this.resetNewTask();
-    this.loadTasks();
     this.loadProjectMembers();
+    this.loadTasks();
   }
 
+  // Charge les tâches (back: GET /api/tasks + filtres optionnels)
   private loadTasks(): void {
-    this.taskService.getTasks(this.userId, this.projectId).subscribe(
-      (data) => {
-        this.tasks = data;
-      },
-      (error) => {
-        console.error('Erreur lors de la récupération des tâches', error);
-        this.errorMessage = 'Impossible de charger les tâches.';
-      }
-    );
+    this.resetMessages();
+
+    this.taskService
+      .getTasks({
+        projectId: this.projectId,
+        status: this.selectedStatus || undefined,
+      })
+      .subscribe({
+        next: (data) => {
+          this.tasks = data ?? [];
+        },
+        error: (error) => {
+          console.error('Erreur lors de la récupération des tâches', error);
+          this.errorMessage = 'Impossible de charger les tâches.';
+        },
+      });
   }
 
+  onStatusFilterChange(): void {
+    this.loadTasks();
+  }
+
+  // Placeholder UI (si tu as déjà la liste via ProjectService.getProjectMembers(projectId), on branchera dessus)
   private loadProjectMembers(): void {
     this.projectMembers = [
-      { username: 'Alice', email: 'alice@example.com' },
-      { username: 'Bob', email: 'bob@example.com' },
-      { username: 'Charlie', email: 'charlie@example.com' },
+      { userId: this.userId, username: 'Moi', email: 'me@example.com', role: 'ADMIN' },
+      { userId: 999, username: 'Alice', email: 'alice@example.com', role: 'MEMBRE' },
+      { userId: 998, username: 'Bob', email: 'bob@example.com', role: 'OBSERVATEUR' },
     ];
   }
 
+  // Création (back: POST /api/tasks) — payload conforme
   createTask(): void {
-    this.newTask.targetUserId = this.userId;
-    this.newTask.parentProject = { id: this.projectId };
+    this.resetMessages();
 
-    this.taskService.createTask(this.newTask).subscribe(
-      (createdTask) => {
-        this.tasks.push(createdTask);
+    // Si ton back impose min 5 caractères, on évite un 400 “bête”
+    if (!this.newTask.title || this.newTask.title.trim().length < 5) {
+      this.errorMessage = 'Le titre doit faire au moins 5 caractères.';
+      return;
+    }
+    if (!this.newTask.description || this.newTask.description.trim().length < 5) {
+      this.errorMessage = 'La description doit faire au moins 5 caractères.';
+      return;
+    }
+
+    this.newTask.targetUserId = this.newTask.targetUserId || this.userId;
+    this.newTask.project = { id: this.projectId };
+
+    this.taskService.createTask(this.newTask).subscribe({
+      next: (createdTask) => {
+        // On recharge pour être certain d’être synchro (ids, tri, filtres, etc.)
         this.successMessage = 'Tâche créée avec succès !';
-        this.errorMessage = '';
         this.resetNewTask();
+        this.loadTasks();
       },
-      (error) => {
+      error: (error) => {
         console.error('Erreur lors de la création de la tâche', error);
         this.errorMessage = 'Impossible de créer la tâche.';
-        this.successMessage = '';
-      }
-    );
-  }
-
-  assignTask(task: Task): void {
-    if (!task.id || !task.assigneeEmail) return;
-
-    this.taskService.assignTaskToUser(task.id, task.assigneeEmail).subscribe({
-      next: () => {
-        this.successMessage = `Tâche assignée à ${task.assigneeEmail}`;
-        this.errorMessage = '';
       },
-      error: () => {
-        this.errorMessage = 'Erreur lors de l’assignation de la tâche';
-        this.successMessage = '';
-      }
     });
   }
 
+  // Édition : l’assignation se fait via targetUserId dans PUT /api/tasks/{id}
   startEditing(task: Task): void {
-    this.editingTask = { ...task };
+    this.resetMessages();
+
+    // Copie “safe”
+    this.editingTask = {
+      ...task,
+      // s’assure qu’on a bien le project.id pour l’update
+      project: (task as any).project ?? { id: this.projectId },
+    } as any;
   }
 
   cancelEditing(): void {
     this.editingTask = null;
+    this.resetMessages();
   }
 
+  // Update (back: PUT /api/tasks/{taskId})
   updateTask(): void {
-    if (this.editingTask) {
-      this.taskService.updateTask(this.editingTask).subscribe(
-        (updatedTask) => {
-          const index = this.tasks.findIndex((task) => task.id === updatedTask.id);
-          if (index !== -1) {
-            this.tasks[index] = updatedTask;
-          }
-          this.successMessage = 'Tâche mise à jour avec succès.';
-          this.errorMessage = '';
-          this.editingTask = null;
-        },
-        (error) => {
-          console.error('Erreur lors de la mise à jour de la tâche', error);
-          this.errorMessage = 'Impossible de mettre à jour la tâche.';
-          this.successMessage = '';
-        }
-      );
-    }
+    if (!this.editingTask?.id) return;
+
+    this.resetMessages();
+
+    // garde-fous d’intégration
+    const payload: any = {
+      ...this.editingTask,
+      project: (this.editingTask as any).project ?? { id: this.projectId },
+      targetUserId: (this.editingTask as any).targetUserId ?? this.userId,
+    };
+
+    this.taskService.updateTask(this.editingTask.id, payload).subscribe({
+      next: (updatedTask) => {
+        const index = this.tasks.findIndex((t) => t.id === updatedTask.id);
+        if (index !== -1) this.tasks[index] = updatedTask;
+
+        this.successMessage = 'Tâche mise à jour avec succès.';
+        this.editingTask = null;
+      },
+      error: (error) => {
+        console.error('Erreur lors de la mise à jour de la tâche', error);
+        this.errorMessage = 'Impossible de mettre à jour la tâche.';
+      },
+    });
   }
 
+  // Delete (back: DELETE /api/tasks/{taskId})
   deleteTask(id: number): void {
-    this.taskService.deleteTask(id).subscribe(
-      () => {
-        this.tasks = this.tasks.filter((task) => task.id !== id);
+    this.resetMessages();
+
+    this.taskService.deleteTask(id).subscribe({
+      next: () => {
+        this.tasks = this.tasks.filter((t) => t.id !== id);
         this.successMessage = 'Tâche supprimée avec succès.';
-        this.errorMessage = '';
       },
-      (error) => {
+      error: (error) => {
         console.error('Erreur lors de la suppression de la tâche', error);
         this.errorMessage = 'Impossible de supprimer la tâche.';
-        this.successMessage = '';
-      }
-    );
+      },
+    });
   }
 
-  private resetNewTask(): void {
-    this.newTask = {
-      title: '',
-      description: '',
-      dueDate: '',
-      status: 'En attente', // ✅ statut accepté côté backend
-      priority: 'MOYENNE',
-      targetUserId: this.userId,
-      parentProject: { id: this.projectId },
-    };
-  }
-
+  // Historique (back: GET /tasks/{taskId}/history)
   showHistory(taskId: number): void {
+    this.resetMessages();
+
     if (this.visibleHistoryTaskId === taskId) {
       this.visibleHistoryTaskId = null;
       this.selectedTaskHistory = [];
@@ -162,32 +184,51 @@ export class TaskListComponent implements OnInit {
 
     this.taskService.getTaskHistory(taskId).subscribe({
       next: (history) => {
-        this.selectedTaskHistory = history;
+        this.selectedTaskHistory = history ?? [];
         this.visibleHistoryTaskId = taskId;
       },
-      error: () => {
+      error: (error) => {
+        console.error('Erreur historique', error);
         this.errorMessage = 'Impossible de récupérer l’historique.';
-      }
+      },
     });
   }
 
+  private resetNewTask(): void {
+    this.newTask = {
+      title: '',
+      description: '',
+      dueDate: null,
+      status: 'En attente', // 
+      priority: 'MOYENNE',  // BASSE | MOYENNE | HAUTE
+      targetUserId: this.userId,
+      project: { id: this.projectId },
+    };
+  }
+
+  private resetMessages(): void {
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+
   get editingTaskTitle(): string {
-    return this.editingTask ? this.editingTask.title : '';
+    return this.editingTask ? (this.editingTask as any).title : '';
   }
 
   get editingTaskDescription(): string {
-    return this.editingTask ? this.editingTask.description : '';
+    return this.editingTask ? (this.editingTask as any).description : '';
   }
 
-  get editingTaskDueDate(): string {
-    return this.editingTask ? this.editingTask.dueDate : '';
+  get editingTaskDueDate(): any {
+    return this.editingTask ? (this.editingTask as any).dueDate : '';
   }
 
-  get editingTaskPriority(): string {
-    return this.editingTask ? this.editingTask.priority : '';
+  get editingTaskPriority(): any {
+    return this.editingTask ? (this.editingTask as any).priority : '';
   }
 
-  get editingTaskStatus(): string {
-    return this.editingTask ? this.editingTask.status : '';
+  get editingTaskStatus(): any {
+    return this.editingTask ? (this.editingTask as any).status : '';
   }
 }
