@@ -17,7 +17,6 @@ describe('LoginComponent', () => {
     router = jasmine.createSpyObj<Router>('Router', ['navigate']);
     spyOn(console, 'error');
 
-
     await TestBed.configureTestingModule({
       imports: [LoginComponent],
       providers: [
@@ -45,31 +44,42 @@ describe('LoginComponent', () => {
     expect(authService.login).not.toHaveBeenCalled();
   });
 
-  it('should login and setLoggedIn when response contains token and userId, then navigate', () => {
+  it('should login and call setLoggedIn when status is success and userId exists, then navigate', () => {
     component.email = 'john@example.com';
     component.password = 'secret';
 
     authService.login.and.returnValue(
-      of({ token: 'jwt', userId: 123, email: 'john@example.com' })
+      of({
+        status: 'success',
+        message: 'Connexion réussie !',
+        userId: 123,
+        email: 'john@example.com',
+        username: 'john',
+        role: 'ADMIN',
+      } as any)
     );
 
     component.onSubmit();
 
     expect(authService.login).toHaveBeenCalledWith('john@example.com', 'secret');
-    expect(authService.setLoggedIn).toHaveBeenCalledWith('john@example.com', 123, 'jwt');
+    expect(authService.setLoggedIn).toHaveBeenCalledWith('john@example.com', 123, 'john', 'ADMIN');
 
     expect(component.isLoading).toBeFalse();
     expect(router.navigate).toHaveBeenCalledWith(['/projects']);
     expect(component.errorMessage).toBeNull();
   });
 
-  it('should login and navigate even when token/userId are empty (no setLoggedIn)', () => {
+  it('should NOT navigate and should set errorMessage when status is not success (no setLoggedIn)', () => {
     component.email = 'john@example.com';
     component.password = 'secret';
 
-    // Objet conforme à LoginResponse mais condition (token && userId) => false
     authService.login.and.returnValue(
-      of({ token: '', userId: 0, email: 'john@example.com' })
+      of({
+        status: 'error',
+        message: 'Bad credentials',
+        userId: 0,
+        email: 'john@example.com',
+      } as any)
     );
 
     component.onSubmit();
@@ -78,16 +88,39 @@ describe('LoginComponent', () => {
     expect(authService.setLoggedIn).not.toHaveBeenCalled();
 
     expect(component.isLoading).toBeFalse();
-    expect(router.navigate).toHaveBeenCalledWith(['/projects']);
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(component.errorMessage).toBe('Connexion impossible.');
+
+  });
+
+  it('should NOT navigate and should set errorMessage when userId is missing (defensive branch)', () => {
+    component.email = 'john@example.com';
+    component.password = 'secret';
+
+    authService.login.and.returnValue(
+      of({
+        status: 'success',
+        message: 'Connexion réussie !',
+        userId: undefined,
+        email: 'john@example.com',
+      } as any)
+    );
+
+    component.onSubmit();
+
+    expect(authService.login).toHaveBeenCalledWith('john@example.com', 'secret');
+    expect(authService.setLoggedIn).not.toHaveBeenCalled();
+
+    expect(component.isLoading).toBeFalse();
+    expect(router.navigate).not.toHaveBeenCalled();
+    expect(component.errorMessage).toBe('Connexion impossible.');
   });
 
   it('should set errorMessage for 401/400 errors', () => {
     component.email = 'john@example.com';
     component.password = 'bad';
 
-    authService.login.and.returnValue(
-      throwError(() => ({ status: 401 }))
-    );
+    authService.login.and.returnValue(throwError(() => ({ status: 401 })));
 
     component.onSubmit();
 
@@ -100,9 +133,7 @@ describe('LoginComponent', () => {
     component.email = 'john@example.com';
     component.password = 'bad';
 
-    authService.login.and.returnValue(
-      throwError(() => ({ status: 404 }))
-    );
+    authService.login.and.returnValue(throwError(() => ({ status: 404 })));
 
     component.onSubmit();
 
@@ -115,9 +146,7 @@ describe('LoginComponent', () => {
     component.email = 'john@example.com';
     component.password = 'bad';
 
-    authService.login.and.returnValue(
-      throwError(() => ({ status: 500 }))
-    );
+    authService.login.and.returnValue(throwError(() => ({ status: 500 })));
 
     component.onSubmit();
 
