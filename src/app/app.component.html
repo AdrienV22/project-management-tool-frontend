@@ -1,23 +1,32 @@
-<header>
-  <h1>Project Management Tool</h1>
-  <nav>
-    <!-- Bloc gauche : liens -->
-    <div class="nav-links">
-      <a routerLink="/login" *ngIf="!(isLoggedIn$ | async)">Connexion</a>
-      <a routerLink="/register" *ngIf="!(isLoggedIn$ | async)">Inscription</a>
-      <a routerLink="/projects" *ngIf="isLoggedIn$ | async">Projets</a>
-    </div>
+<header class="app-header">
+  <div class="app-header-inner">
+    <h1 class="app-title">Project Management Tool</h1>
 
-    <!-- Bloc droit : bouton de déconnexion -->
-    <div class="nav-right">
-      <button *ngIf="isLoggedIn$ | async" (click)="logout()" class="logout-btn">Déconnexion</button>
-    </div>
-  </nav>
+    <nav class="app-nav" aria-label="Navigation principale">
+      <div class="nav-links">
+        <a routerLink="/login" *ngIf="!(isLoggedIn$ | async)">Connexion</a>
+        <a routerLink="/register" *ngIf="!(isLoggedIn$ | async)">Inscription</a>
+        <a routerLink="/projects" *ngIf="isLoggedIn$ | async">Projets</a>
+      </div>
+
+      <div class="nav-right">
+        <button
+          *ngIf="isLoggedIn$ | async"
+          (click)="logout()"
+          class="logout-btn"
+          type="button"
+        >
+          Déconnexion
+        </button>
+      </div>
+    </nav>
+  </div>
 </header>
 
-<!-- Affichage des composants selon les routes -->
-<router-outlet></router-outlet>
+<main class="app-content">
+  <router-outlet></router-outlet>
+</main>
 
-<footer>
+<footer class="app-footer">
   <p>&copy; 2025 Project Management Tool Adrien</p>
 </footer>

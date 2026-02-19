@@ -1,34 +1,26 @@
-import { Component, OnInit } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { AuthService } from './services/auth.service'; // Import du service d'authentification
-import { Router } from '@angular/router'; // Import pour gérer la redirection
+import { Component } from '@angular/core';
+import { RouterModule, Router } from '@angular/router';
 import { Observable } from 'rxjs';
-import { CommonModule } from '@angular/common'; // Import du CommonModule
+import { CommonModule } from '@angular/common';
+
+import { AuthService } from './services/auth.service';
 
 @Component({
-  standalone: true, // Indique que c'est un standalone component
+  standalone: true,
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
-  imports: [RouterModule, CommonModule], // Ajoute CommonModule ici
+  imports: [RouterModule, CommonModule],
 })
-export class AppComponent implements OnInit {
-  title = 'Mon application de project management';
-  isLoggedIn$: Observable<boolean>; // Observable pour l'état de connexion
+export class AppComponent {
+  isLoggedIn$: Observable<boolean>;
 
   constructor(private authService: AuthService, private router: Router) {
-    // Récupérer l'état de connexion via l'observable
     this.isLoggedIn$ = this.authService.getAuthStatus();
   }
 
-  ngOnInit(): void {
-    // On met à jour l'état de connexion lorsque l'application est initialisée
-    this.isLoggedIn$ = this.authService.getAuthStatus();
-  }
-
-  logout() {
-    this.authService.logout(); // Déconnexion via AuthService
-    this.isLoggedIn$ = this.authService.getAuthStatus(); // Mettre à jour l'état après déconnexion
-    this.router.navigate(['/login']); // Redirection vers la page de connexion
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }
