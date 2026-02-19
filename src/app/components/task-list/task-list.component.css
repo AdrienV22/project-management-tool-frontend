@@ -1,91 +1,356 @@
-/* ===== FORMULAIRE TÂCHE ===== */
+/* =========================
+   Base / Tokens (sobre premium)
+========================= */
+:host {
+  display: block;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+.task-list-container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 18px 48px;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 0 0 14px;
+}
+
+h2 {
+  font-size: 18px;
+  font-weight: 650;
+  margin: 0 0 14px;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  margin: 0;
+}
+
+.muted {
+  opacity: 0.75;
+  font-size: 14px;
+}
+
+/* Messages */
+.error,
+.success {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.error {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.success {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* =========================
+   Bouton retour (premium + cohérent)
+========================= */
+.back-button-wrapper {
+  margin: 6px 0 18px;
+}
+
+.back-btn {
+  appearance: none;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: #fff;
+  color: #111;
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.back-btn:hover {
+  background: rgba(0, 0, 0, 0.03);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.back-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+}
+
+.back-btn:focus-visible {
+  outline: 2px solid rgba(0, 0, 0, 0.35);
+  outline-offset: 2px;
+}
+
+/* =========================
+   Formulaire création / édition (même langage visuel)
+========================= */
+.task-form,
+.edit-form form {
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  border-radius: 18px;
+  padding: 16px 16px 14px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.06);
+}
 
 .task-form {
-  background: #ffffff;
-  border: 1px solid #ececec;
-  border-radius: 12px;
-  padding: 28px;
-  margin-bottom: 40px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+  margin-top: 10px;
 }
-
-.task-form h2 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 20px;
-}
-
-/* Champs */
 
 .field {
   display: flex;
   flex-direction: column;
-  margin-bottom: 18px;
+  gap: 8px;
+  margin: 12px 0;
 }
 
-.field label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  margin-bottom: 6px;
-  color: #444;
+label {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.9;
 }
 
-.field input,
-.field textarea,
-.field select {
+input,
+textarea,
+select {
   width: 100%;
-  box-sizing: border-box; /* 🔥 important pour éviter le débordement */
-  padding: 10px 12px;
-  border: 1px solid #dcdcdc;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-family: 'Inter', sans-serif;
-  background-color: #fafafa;
-  transition: all 0.2s ease;
+  padding: 11px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: #fff;
+  color: #111;
+  font-size: 14px;
+  outline: none;
+  transition: box-shadow 120ms ease, border-color 120ms ease, transform 120ms ease;
 }
 
-.field textarea {
-  min-height: 90px;
+textarea {
+  min-height: 92px;
   resize: vertical;
 }
 
-/* Focus premium */
-
-.field input:focus,
-.field textarea:focus,
-.field select:focus {
-  outline: none;
-  border-color: #999;
-  background-color: #ffffff;
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: rgba(0, 0, 0, 0.28);
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.06);
 }
-
-/* Grid responsive */
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
 }
 
-/* Bouton créer */
+@media (max-width: 820px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
 
-.task-form button[type="submit"] {
-  margin-top: 15px;
-  background-color: #1a1a1a;
-  color: #ffffff;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 0.9rem;
+/* Boutons génériques (création / actions) */
+button[type="submit"],
+.task-actions button {
+  appearance: none;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: #111;
+  color: #fff;
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-weight: 650;
+  font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, opacity 120ms ease;
 }
 
-.task-form button[type="submit"]:hover {
-  background-color: #333;
+button[type="submit"]:hover,
+.task-actions button:hover {
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
 }
 
-.task-form button[type="submit"]:disabled {
-  background-color: #ccc;
+button[type="submit"]:active,
+.task-actions button:active {
+  transform: translateY(0);
+}
+
+button[disabled] {
+  opacity: 0.55;
   cursor: not-allowed;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Boutons secondaires dans l'édition */
+.task-actions button:nth-child(2),
+.task-actions button:nth-child(3),
+.edit-form .task-actions button[type="button"] {
+  background: #fff;
+  color: #111;
+}
+
+.task-actions button:nth-child(2):hover,
+.task-actions button:nth-child(3):hover,
+.edit-form .task-actions button[type="button"]:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* =========================
+   Filtre (aligné premium)
+========================= */
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.filter label {
+  margin: 0;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.filter select {
+  max-width: 220px;
+}
+
+/* =========================
+   Liste & cards (uniforme, sans collage des badges)
+========================= */
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.task-list > li {
+  margin: 0;
+  padding: 0;
+}
+
+/* Card lecture */
+.task-card {
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  border-radius: 18px;
+  background: #fff;
+  padding: 14px 14px 12px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.06);
+}
+
+/* Tête + badges */
+.task-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.task-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.task-badges {
+  display: inline-flex;
+  gap: 8px;              /* ✅ évite TerminéBASSE collé */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: rgba(0, 0, 0, 0.03);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;    /* ✅ garde “En attente” propre */
+}
+
+.task-desc {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.45;
+  opacity: 0.92;
+  white-space: pre-wrap;
+}
+
+.task-meta {
+  font-size: 13px;
+  opacity: 0.9;
+  margin-bottom: 10px;
+}
+
+/* Actions */
+.task-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* =========================
+   Historique (inline premium)
+========================= */
+.task-history {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.14);
+}
+
+.task-history h4 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.task-history ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.task-history li {
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(0, 0, 0, 0.02);
+  font-size: 13px;
+}
+
+/* =========================
+   Mode édition : cohérence avec création
+========================= */
+.edit-form {
+  margin-top: 2px;
+}
+
+/* Petite respiration entre lecture/édition */
+.task-card,
+.edit-form form {
+  transition: box-shadow 120ms ease, transform 120ms ease;
 }
