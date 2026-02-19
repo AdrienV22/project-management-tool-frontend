@@ -1,123 +1,214 @@
 <div class="task-list-container">
   <h1>Liste des Tâches</h1>
 
-  <!-- Formulaire de création -->
-  <form (ngSubmit)="createTask()" class="task-form">
+  <!-- ========== CRÉATION ========== -->
+  <form (ngSubmit)="createTask()" class="task-form" #createForm="ngForm">
     <h2>Créer une nouvelle tâche</h2>
-    <div>
-      <label for="title">Titre:</label>
-      <input id="title" [(ngModel)]="newTask.title" name="title" required />
+
+    <div class="field">
+      <label for="title">Titre</label>
+      <input
+        id="title"
+        [(ngModel)]="newTask.title"
+        name="title"
+        required
+        minlength="5"
+        placeholder="ex: Préparer la démo"
+      />
     </div>
-    <div>
-      <label for="description">Description:</label>
-      <textarea id="description" [(ngModel)]="newTask.description" name="description" required></textarea>
+
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea
+        id="description"
+        [(ngModel)]="newTask.description"
+        name="description"
+        required
+        minlength="5"
+        placeholder="Objectif, contexte, attendu..."
+      ></textarea>
     </div>
-    <div>
-      <label for="dueDate">Date d'échéance:</label>
-      <input type="date" id="dueDate" [(ngModel)]="newTask.dueDate" name="dueDate" />
+
+    <div class="grid">
+      <div class="field">
+        <label for="dueDate">Date d'échéance</label>
+        <input type="date" id="dueDate" [(ngModel)]="newTask.dueDate" name="dueDate" />
+      </div>
+
+      <div class="field">
+        <label for="status">Statut</label>
+        <select id="status" [(ngModel)]="newTask.status" name="status" required>
+          <option value="En attente">En attente</option>
+          <option value="En cours">En cours</option>
+          <option value="Terminé">Terminé</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="priority">Priorité</label>
+        <select id="priority" [(ngModel)]="newTask.priority" name="priority" required>
+          <option value="HAUTE">Haute</option>
+          <option value="MOYENNE">Moyenne</option>
+          <option value="BASSE">Basse</option>
+        </select>
+      </div>
     </div>
-    <div>
-      <label for="priority">Priorité:</label>
-      <select id="priority" [(ngModel)]="newTask.priority" name="priority">
-        <option value="HAUTE">Haute</option>
-        <option value="MOYENNE">Moyenne</option>
-        <option value="BASSE">Basse</option>
-      </select>
-    </div>
-    <button type="submit">Créer</button>
+
+    <button type="submit" [disabled]="!createForm.form.valid">Créer</button>
   </form>
 
   <!-- Messages d'erreur ou de succès -->
   <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
   <p *ngIf="successMessage" class="success">{{ successMessage }}</p>
 
-  <!-- Filtre par statut -->
+  <!-- ========== FILTRE ========== -->
   <div class="filter">
     <label for="statusFilter">Filtrer par statut :</label>
     <select id="statusFilter" [(ngModel)]="selectedStatus" name="statusFilter">
       <option value="">Tous</option>
-      <option value="New">Nouveau</option>
-      <option value="In Progress">En cours</option>
-      <option value="Completed">Terminé</option>
+      <option value="En attente">En attente</option>
+      <option value="En cours">En cours</option>
+      <option value="Terminé">Terminé</option>
     </select>
   </div>
 
-  <!-- Liste des tâches -->
-  <ul class="task-list">
-    <ng-container *ngFor="let task of tasks | statusFilter:selectedStatus">
-      <li *ngIf="task">
-        <!-- Affichage des tâches lorsqu'elles ne sont pas en mode édition -->
-        <div *ngIf="editingTask?.id !== task.id">
-          <h3>{{ task?.title }}</h3>
-          <p>{{ task?.description }}</p>
-          <p><strong>Date d'échéance:</strong> {{ task?.dueDate }}</p>
-          <p><strong>Statut:</strong> {{ task?.status }}</p>
-          <p><strong>Priorité:</strong> {{ task?.priority }}</p>
+  <!-- ========== LISTE ========== -->
+<ng-container *ngIf="tasks.length > 0; else emptyTasks">
+    <ul class="task-list">
+      <ng-container *ngFor="let task of tasks | statusFilter:selectedStatus">
+        <!-- ✅ Narrow: task n'est jamais null/undefined ici -->
+        <ng-container *ngIf="task as t">
+          <li>
+            <!-- ====== MODE LECTURE ====== -->
+            <div class="task-card" *ngIf="editingTask?.id !== t.id">
+              <div class="task-head">
+                <h3 class="task-title">{{ t.title }}</h3>
+                <div class="task-badges">
+                  <span class="badge">{{ t.status }}</span>
+                  <span class="badge">{{ t.priority }}</span>
+                </div>
+              </div>
 
-          <!-- Menu déroulant pour assigner un membre -->
-          <label for="assignee">Assigner à :</label>
-          <select [(ngModel)]="task.assigneeEmail" (change)="assignTask(task)">
-            <option [ngValue]="null" disabled selected>-- Choisir un membre --</option>
-            <option *ngFor="let user of projectMembers" [value]="user.email">
-              {{ user.username }} ({{ user.email }})
-            </option>
-          </select>
+              <p class="task-desc">{{ t.description }}</p>
 
-          <!-- Boutons d'action -->
-          <button (click)="startEditing(task)">Modifier</button>
-          <button *ngIf="task.id !== undefined" (click)="deleteTask(task.id)">Supprimer</button>
-          <button (click)="showHistory(task.id)">Voir l'historique</button>
+              <div class="task-meta">
+                <span><strong>Échéance :</strong> {{ t.dueDate || '—' }}</span>
+              </div>
 
-          <!-- Historique des modifications -->
-          <div *ngIf="visibleHistoryTaskId === task.id && selectedTaskHistory.length > 0" class="task-history">
-            <h4>Historique des modifications :</h4>
-            <ul>
-              <li *ngFor="let entry of selectedTaskHistory">
-                <strong>{{ entry.modifiedAt | date:'short' }}</strong> :
-                Champ <em>{{ entry.fieldName }}</em> changé de 
-                "<span class="old-value">{{ entry.oldValue }}</span>" à 
-                "<span class="new-value">{{ entry.newValue }}</span>" 
-                par <strong>{{ entry.modifiedBy }}</strong>
-              </li>
-            </ul>
-          </div>
-          <div *ngIf="visibleHistoryTaskId === task.id && selectedTaskHistory.length === 0">
-            <em>Aucune modification enregistrée.</em>
-          </div>
-        </div>
+              <div class="task-actions">
+                <button type="button" (click)="startEditing(t)" [disabled]="!t.id">
+                  Modifier
+                </button>
 
-<!-- Formulaire d'édition de tâche -->
-<div *ngIf="editingTask?.id === task.id" class="edit-form">
-  <form (ngSubmit)="updateTask()">
-    <div>
-      <label for="edit-title">Titre :</label>
-      <input id="edit-title" [(ngModel)]="editingTask!.title" name="editTitle" required />
-    </div>
-    <div>
-      <label for="edit-description">Description :</label>
-      <textarea id="edit-description" [(ngModel)]="editingTask!.description" name="editDescription" required></textarea>
-    </div>
-    <div>
-      <label for="edit-dueDate">Date d'échéance :</label>
-      <input type="date" id="edit-dueDate" [(ngModel)]="editingTask!.dueDate" name="editDueDate" />
-    </div>
-    <div>
-      <label for="edit-status">Statut :</label>
-      <select id="edit-status" [(ngModel)]="editingTask!.status" name="editStatus">
-        <option value="New">Nouveau</option>
-        <option value="In Progress">En cours</option>
-        <option value="Completed">Terminé</option>
-      </select>
-    </div>
-    <div>
-      <label for="edit-priority">Priorité :</label>
-      <select id="edit-priority" [(ngModel)]="editingTask!.priority" name="editPriority">
-        <option value="HAUTE">Haute</option>
-        <option value="MOYENNE">Moyenne</option>
-        <option value="BASSE">Basse</option>
-      </select>
-    </div>
-    <button type="submit">Enregistrer</button>
-    <button type="button" (click)="cancelEditing()">Annuler</button>
-  </form>
+                <button type="button" *ngIf="t.id" (click)="deleteTask(t.id)">
+                  Supprimer
+                </button>
+
+                <button type="button" *ngIf="t.id" (click)="showHistory(t.id)">
+                  {{ visibleHistoryTaskId === t.id ? 'Masquer l’historique' : 'Historique' }}
+                </button>
+              </div>
+
+              <!-- ====== HISTORIQUE ====== -->
+              <div class="task-history" *ngIf="t.id && visibleHistoryTaskId === t.id">
+                <h4>Historique</h4>
+
+                <div *ngIf="selectedTaskHistory.length === 0" class="muted">
+                  Aucun historique pour l’instant.
+                </div>
+
+                <ul *ngIf="selectedTaskHistory.length > 0">
+                  <li *ngFor="let entry of selectedTaskHistory">
+                    <strong>{{ entry.changedAt | date:'short' }}</strong>
+                    <span> — {{ entry.changeType || 'Modification' }}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- ====== MODE ÉDITION ====== -->
+            <div class="edit-form" *ngIf="editingTask?.id === t.id">
+              <!-- ✅ Narrow: editingTask n'est jamais null ici -->
+              <ng-container *ngIf="editingTask as et">
+                <form (ngSubmit)="updateTask()" #editForm="ngForm">
+                  <h4>Modifier la tâche</h4>
+
+                  <div class="field">
+                    <label [for]="'edit-title-' + t.id">Titre</label>
+                    <input
+                      [id]="'edit-title-' + t.id"
+                      [(ngModel)]="et.title"
+                      [name]="'editTitle-' + t.id"
+                      required
+                      minlength="5"
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label [for]="'edit-description-' + t.id">Description</label>
+                    <textarea
+                      [id]="'edit-description-' + t.id"
+                      [(ngModel)]="et.description"
+                      [name]="'editDescription-' + t.id"
+                      required
+                      minlength="5"
+                    ></textarea>
+                  </div>
+
+                  <div class="grid">
+                    <div class="field">
+                      <label [for]="'edit-dueDate-' + t.id">Date d'échéance</label>
+                      <input
+                        type="date"
+                        [id]="'edit-dueDate-' + t.id"
+                        [(ngModel)]="et.dueDate"
+                        [name]="'editDueDate-' + t.id"
+                      />
+                    </div>
+
+                    <div class="field">
+                      <label [for]="'edit-status-' + t.id">Statut</label>
+                      <select
+                        [id]="'edit-status-' + t.id"
+                        [(ngModel)]="et.status"
+                        [name]="'editStatus-' + t.id"
+                        required
+                      >
+                        <option value="En attente">En attente</option>
+                        <option value="En cours">En cours</option>
+                        <option value="Terminé">Terminé</option>
+                      </select>
+                    </div>
+
+                    <div class="field">
+                      <label [for]="'edit-priority-' + t.id">Priorité</label>
+                      <select
+                        [id]="'edit-priority-' + t.id"
+                        [(ngModel)]="et.priority"
+                        [name]="'editPriority-' + t.id"
+                        required
+                      >
+                        <option value="HAUTE">Haute</option>
+                        <option value="MOYENNE">Moyenne</option>
+                        <option value="BASSE">Basse</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="task-actions">
+                    <button type="submit" [disabled]="!editForm.form.valid">Enregistrer</button>
+                    <button type="button" (click)="cancelEditing()">Annuler</button>
+                  </div>
+                </form>
+              </ng-container>
+            </div>
+          </li>
+        </ng-container>
+      </ng-container>
+    </ul>
+  </ng-container>
+
+  <ng-template #emptyTasks>
+    <p class="muted">Aucune tâche pour ce projet.</p>
+  </ng-template>
 </div>
