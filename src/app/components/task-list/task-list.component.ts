@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { TaskService, Task, TaskStatus, TaskPriority } from '../../services/task.service';
 import { AuthService } from '../../services/auth.service';
@@ -43,7 +43,8 @@ export class TaskListComponent implements OnInit {
   constructor(
     private taskService: TaskService,
     private authService: AuthService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -71,6 +72,11 @@ export class TaskListComponent implements OnInit {
     this.loadTasks();
   }
 
+  // ✅ Bouton retour
+  goBackToProject(): void {
+    this.router.navigate(['/projects', this.projectId]);
+  }
+
   private loadTasks(): void {
     this.taskService.getTasks({ projectId: this.projectId }).subscribe({
       next: (data) => {
@@ -95,8 +101,7 @@ export class TaskListComponent implements OnInit {
     };
 
     this.taskService.createTask(payload).subscribe({
-      next: (createdTask) => {
-        // ✅ on refresh pour être sûr d'avoir l'id + cohérence
+      next: () => {
         this.successMessage = 'Tâche créée avec succès !';
         this.resetNewTask();
         this.loadTasks();
@@ -142,9 +147,6 @@ export class TaskListComponent implements OnInit {
 
         this.successMessage = 'Tâche mise à jour avec succès.';
         this.editingTask = null;
-
-        // ✅ optionnel : refresh si tu veux que tout soit parfaitement à jour
-        // this.loadTasks();
       },
       error: (error) => {
         console.error('Erreur lors de la mise à jour de la tâche', error);

@@ -1,6 +1,13 @@
 <div class="task-list-container">
   <h1>Liste des Tâches</h1>
 
+  <!-- ✅ RETOUR PROJET -->
+  <div class="back-button-wrapper">
+    <button type="button" class="back-btn" (click)="goBackToProject()">
+      ← Revenir au projet
+    </button>
+  </div>
+
   <!-- ========== CRÉATION ========== -->
   <form (ngSubmit)="createTask()" class="task-form" #createForm="ngForm">
     <h2>Créer une nouvelle tâche</h2>
@@ -73,10 +80,10 @@
   </div>
 
   <!-- ========== LISTE ========== -->
-<ng-container *ngIf="tasks.length > 0; else emptyTasks">
+  <ng-container *ngIf="tasks.length > 0; else emptyTasks">
     <ul class="task-list">
       <ng-container *ngFor="let task of tasks | statusFilter:selectedStatus">
-        <!-- Narrow: task n'est jamais null/undefined ici -->
+        <!-- ✅ Narrow: task n'est jamais null/undefined ici -->
         <ng-container *ngIf="task as t">
           <li>
             <!-- ====== MODE LECTURE ====== -->
