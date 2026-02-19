@@ -23,7 +23,7 @@ describe('ProjectsComponent', () => {
     spyOn(console, 'log');
 
     await TestBed.configureTestingModule({
-      imports: [ProjectsComponent], // standalone (imports CommonModule/FormsModule already)
+      imports: [ProjectsComponent],
       providers: [
         { provide: ProjectService, useValue: projectService },
         { provide: AuthService, useValue: authService },
@@ -37,7 +37,7 @@ describe('ProjectsComponent', () => {
 
   it('should create', () => {
     projectService.getProjects.and.returnValue(of([]));
-    fixture.detectChanges(); // triggers ngOnInit -> loadProjects
+    fixture.detectChanges();
     expect(component).toBeTruthy();
   });
 
@@ -77,15 +77,14 @@ describe('ProjectsComponent', () => {
   });
 
   it('should prevent submit when required fields are missing', () => {
-    // champs obligatoires manquants
     component.newProject = {
       name: '',
       description: '',
       startDate: '',
       endDate: '',
       status: 'pending',
-      client: ''
-    };
+      clientEmail: ''
+    } as any;
 
     component.onSubmit();
 
@@ -105,8 +104,8 @@ describe('ProjectsComponent', () => {
       startDate: '2026-02-01',
       endDate: '2026-03-01',
       status: 'pending',
-      client: 'Chef'
-    };
+      clientEmail: 'u1.admin@test.com'
+    } as any;
 
     projectService.addProject.and.returnValue(
       of({ id: 99, name: 'Nouveau' } as any)
@@ -119,11 +118,10 @@ describe('ProjectsComponent', () => {
     expect(component.projects.length).toBe(1);
     expect(component.projects[0].id).toBe(99);
 
-    // le formulaire doit être fermé + reset
     expect(component.showAddProjectForm).toBeFalse();
     expect(component.newProject.name).toBe('');
     expect(component.newProject.description).toBe('');
-    expect(component.newProject.client).toBe('');
+    expect(component.newProject.clientEmail).toBe('');
   });
 
   it('should handle addProject error', () => {
@@ -133,8 +131,8 @@ describe('ProjectsComponent', () => {
       startDate: '2026-02-01',
       endDate: '2026-03-01',
       status: 'pending',
-      client: 'Chef'
-    };
+      clientEmail: 'u1.admin@test.com'
+    } as any;
 
     projectService.addProject.and.returnValue(
       throwError(() => ({ status: 500 }))

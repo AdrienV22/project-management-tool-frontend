@@ -22,10 +22,9 @@ export class ProjectsComponent implements OnInit {
     startDate: '',
     endDate: '',
     status: 'pending',
-    client: ''
+    clientEmail: '' 
   };
 
-  // Champs pour inviter un membre
   inviteEmail: string = '';
   inviteRole: string = 'MEMBRE';
 
@@ -54,29 +53,34 @@ export class ProjectsComponent implements OnInit {
 
   toggleAddProjectForm() {
     this.showAddProjectForm = !this.showAddProjectForm;
+    if (this.showAddProjectForm) this.errorMessage = null;
   }
 
   onSubmit() {
-    if (!this.newProject.name || !this.newProject.description || !this.newProject.client) {
+    if (!this.newProject.name || !this.newProject.description || !this.newProject.clientEmail) {
       this.errorMessage = 'Veuillez remplir tous les champs obligatoires, y compris le chef de projet.';
       return;
     }
 
-    const startDate = new Date(this.newProject.startDate).toISOString().split('T')[0];
-    const endDate = new Date(this.newProject.endDate).toISOString().split('T')[0];
+    // Dates optionnelles : ne convertit que si renseignées
+    const payload: any = { ...this.newProject };
 
-    this.newProject.startDate = startDate;
-    this.newProject.endDate = endDate;
+    if (payload.startDate) {
+      payload.startDate = new Date(payload.startDate).toISOString().split('T')[0];
+    }
+    if (payload.endDate) {
+      payload.endDate = new Date(payload.endDate).toISOString().split('T')[0];
+    }
 
-    this.projectService.addProject(this.newProject).subscribe(
+    this.projectService.addProject(payload).subscribe(
       (response) => {
         this.projects.push(response);
         this.toggleAddProjectForm();
         this.resetNewProject();
       },
       (error) => {
-        console.error('Erreur lors de l\'ajout du projet:', error);
-        this.errorMessage = 'Impossible d\'ajouter le projet.';
+        console.error("Erreur lors de l'ajout du projet:", error);
+        this.errorMessage = "Impossible d'ajouter le projet.";
       }
     );
   }
@@ -88,7 +92,7 @@ export class ProjectsComponent implements OnInit {
       startDate: '',
       endDate: '',
       status: 'pending',
-      client: ''
+      clientEmail: ''
     };
   }
 
@@ -102,7 +106,6 @@ export class ProjectsComponent implements OnInit {
 
   inviteMember() {
     console.log('Invitation envoyée à', this.inviteEmail, 'avec le rôle', this.inviteRole);
-    // Tu pourras appeler le backend ici si tu veux lier à une fonctionnalité réelle
   }
 
   logout() {
