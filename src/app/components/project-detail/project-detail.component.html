@@ -3,6 +3,7 @@
     <div class="header-left">
       <h1>Détails du projet : {{ project?.name }}</h1>
       <p class="project-description">{{ project?.description }}</p>
+
       <div class="role-pill" *ngIf="currentUserRole !== 'NONE'">
         Rôle : <strong>{{ currentUserRole }}</strong>
       </div>
@@ -10,19 +11,36 @@
   </header>
 
   <!-- ========= MODE LECTURE ========= -->
-  <form *ngIf="!isEditing; else editFormTemplate" class="project-readonly" aria-label="Détails du projet">
+  <form
+    *ngIf="!isEditing; else editFormTemplate"
+    class="project-readonly"
+    aria-label="Détails du projet"
+  >
     <div class="project-info">
       <div><strong>Date de début :</strong> {{ project?.startDate | date }}</div>
       <div><strong>Date de fin :</strong> {{ project?.endDate | date }}</div>
       <div><strong>Statut :</strong> {{ project?.statut }}</div>
-      <div><strong>Chef de projet :</strong> <strong>{{ project?.clientEmail }}</strong></div>
+      <div>
+        <strong>Chef de projet :</strong>
+        <strong>{{ project?.clientEmail }}</strong>
+      </div>
     </div>
 
     <div class="button-group" *ngIf="canEditProject">
-      <button type="button" (click)="enableEditMode()" class="edit-button" aria-label="Modifier le projet">
+      <button
+        type="button"
+        (click)="enableEditMode()"
+        class="edit-button"
+        aria-label="Modifier le projet"
+      >
         Modifier
       </button>
-      <button type="button" (click)="confirmDelete()" class="delete-button" aria-label="Supprimer le projet">
+      <button
+        type="button"
+        (click)="confirmDelete()"
+        class="delete-button"
+        aria-label="Supprimer le projet"
+      >
         Supprimer
       </button>
     </div>
@@ -42,12 +60,23 @@
 
       <div class="form-group">
         <label for="description">Description :</label>
-        <textarea id="description" [(ngModel)]="project.description" name="description" required></textarea>
+        <textarea
+          id="description"
+          [(ngModel)]="project.description"
+          name="description"
+          required
+        ></textarea>
       </div>
 
       <div class="form-group">
         <label for="startDate">Date de début :</label>
-        <input type="date" id="startDate" [(ngModel)]="project.startDate" name="startDate" required />
+        <input
+          type="date"
+          id="startDate"
+          [(ngModel)]="project.startDate"
+          name="startDate"
+          required
+        />
       </div>
 
       <div class="form-group">
@@ -84,7 +113,12 @@
         <button type="submit" class="save-btn" aria-label="Enregistrer les modifications">
           Enregistrer
         </button>
-        <button type="button" (click)="cancelEditMode()" class="cancel-btn" aria-label="Annuler les modifications">
+        <button
+          type="button"
+          (click)="cancelEditMode()"
+          class="cancel-btn"
+          aria-label="Annuler les modifications"
+        >
           Annuler
         </button>
       </div>
@@ -183,7 +217,11 @@
     </form>
   </section>
 
-  <section class="task-creation locked" *ngIf="!canCreateTask" aria-label="Création tâche verrouillée">
+  <section
+    class="task-creation locked"
+    *ngIf="!canCreateTask"
+    aria-label="Création tâche verrouillée"
+  >
     <h3>Créer une tâche</h3>
     <div class="info-note">
       Action réservée aux <strong>ADMIN</strong> et <strong>MEMBRE</strong>.
@@ -196,20 +234,51 @@
 
     <ul>
       <li *ngFor="let t of tasks">
-        <div class="task-row">
+        <!-- MODE LECTURE -->
+        <div class="task-row" *ngIf="!editingTask || editingTask.id !== t.id">
           <div class="task-main">
             <strong>{{ t.title }}</strong>
             <span> — {{ t.status }} / {{ t.priority }}</span>
           </div>
 
-          <button
-            *ngIf="canViewTaskHistory"
-            type="button"
-            (click)="loadHistory(t.id!)"
-            aria-label="Voir historique"
-          >
-            {{ visibleHistoryTaskId === t.id ? 'Masquer' : 'Historique' }}
-          </button>
+          <div class="task-actions">
+            <button *ngIf="canUpdateTask" type="button" (click)="startEditTask(t)">
+              Modifier
+            </button>
+
+            <button
+              *ngIf="canViewTaskHistory"
+              type="button"
+              (click)="loadHistory(t.id!)"
+              aria-label="Voir historique"
+            >
+              {{ visibleHistoryTaskId === t.id ? 'Masquer' : 'Historique' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- MODE ÉDITION -->
+        <div class="task-edit-inline" *ngIf="editingTask && editingTask.id === t.id">
+          <input
+            type="text"
+            [(ngModel)]="editingTask!.title"
+            [name]="'editTitle-' + t.id"
+          />
+
+          <select [(ngModel)]="editingTask!.status" [name]="'editStatus-' + t.id">
+            <option value="En attente">En attente</option>
+            <option value="En cours">En cours</option>
+            <option value="Terminé">Terminé</option>
+          </select>
+
+          <select [(ngModel)]="editingTask!.priority" [name]="'editPriority-' + t.id">
+            <option value="BASSE">Basse</option>
+            <option value="MOYENNE">Moyenne</option>
+            <option value="HAUTE">Haute</option>
+          </select>
+
+          <button type="button" (click)="updateTask()">Sauvegarder</button>
+          <button type="button" (click)="cancelEditTask()">Annuler</button>
         </div>
 
         <!-- Historique affiché sous la tâche -->
@@ -220,7 +289,7 @@
 
           <ul *ngIf="selectedTaskHistory.length > 0">
             <li *ngFor="let h of selectedTaskHistory">
-              <strong>{{ h.changedAt | date:'short' }}</strong>
+              <strong>{{ h.changedAt | date: 'short' }}</strong>
               <span> — {{ h.changeType || 'Modification' }}</span>
             </li>
           </ul>

@@ -35,6 +35,9 @@ export class ProjectDetailComponent implements OnInit {
   selectedTaskHistory: any[] = [];
   visibleHistoryTaskId: number | null = null;
 
+  // ✅ Edition tâche inline
+  editingTask: Task | null = null;
+
   // ✅ Helpers UI (permissions)
   get canInvite(): boolean {
     return this.currentUserRole === 'ADMIN';
@@ -52,11 +55,9 @@ export class ProjectDetailComponent implements OnInit {
     return this.currentUserRole === 'ADMIN' || this.currentUserRole === 'MEMBRE';
   }
   get canEditProject(): boolean {
-    // traditionnel : seul ADMIN peut modifier/supprimer projet
     return this.currentUserRole === 'ADMIN';
   }
   get canViewTaskHistory(): boolean {
-    // selon ton tableau extrait : historique = ADMIN + MEMBRE (OBSERVATEUR KO)
     return this.currentUserRole === 'ADMIN' || this.currentUserRole === 'MEMBRE';
   }
 
@@ -105,8 +106,6 @@ export class ProjectDetailComponent implements OnInit {
       next: (data) => {
         this.project = data;
         this.loading = false;
-
-        // ✅ Le rôle peut dépendre du clientEmail -> recalcul après chargement projet
         this.resolveCurrentUserRole();
       },
       error: () => {
@@ -133,21 +132,18 @@ export class ProjectDetailComponent implements OnInit {
       return;
     }
 
-    // Si je suis clientEmail : ADMIN
     const clientEmail = String(this.project?.clientEmail || '').trim().toLowerCase();
     if (clientEmail && clientEmail === myEmail) {
       this.currentUserRole = 'ADMIN';
       return;
     }
 
-    // Sinon, chercher dans la liste des membres
     const match = (this.members || []).find(
       (m: any) => String(m?.email || '').trim().toLowerCase() === myEmail
     );
 
     this.currentUserRole = (match?.role as ProjectRole) || 'NONE';
 
-    // UX : si observateur, on force l’assignation vers soi (et de toute façon le form est masqué)
     if (this.currentUserRole === 'OBSERVATEUR') {
       const currentUserId = this.authService.getUserId();
       if (currentUserId) this.newTask.targetUserId = currentUserId;
@@ -261,7 +257,6 @@ export class ProjectDetailComponent implements OnInit {
         };
         this.loadTasks(this.project.id);
 
-        // reset historique affiché (optionnel mais propre)
         this.visibleHistoryTaskId = null;
         this.selectedTaskHistory = [];
       },
@@ -269,10 +264,46 @@ export class ProjectDetailComponent implements OnInit {
     });
   }
 
+  // ========= EDIT TASK =========
+  startEditTask(task: Task): void {
+    if (!this.canUpdateTask) return;
+    this.error = null;
+    this.editingTask = { ...task };
+  }
+
+  cancelEditTask(): void {
+    this.editingTask = null;
+  }
+
+  updateTask(): void {
+    if (!this.canUpdateTask) return;
+    if (!this.editingTask?.id) return;
+
+    // sécurité : conserver le projet.id (souvent attendu côté back)
+    const payload: Task = {
+      ...this.editingTask,
+      project: { id: this.project.id },
+    };
+
+    this.taskService.updateTask(this.editingTask.id, payload).subscribe({
+      next: () => {
+        const editedId = this.editingTask?.id!;
+        this.editingTask = null;
+        this.loadTasks(this.project.id);
+
+        // optionnel : ouvrir l'historique direct après update
+        this.loadHistory(editedId);
+      },
+      error: () => {
+        this.error = 'Erreur lors de la mise à jour de la tâche.';
+      },
+    });
+  }
+
+  // ========= HISTORY =========
   loadHistory(taskId: number): void {
     if (!this.canViewTaskHistory) return;
 
-    // toggle
     if (this.visibleHistoryTaskId === taskId) {
       this.visibleHistoryTaskId = null;
       this.selectedTaskHistory = [];
