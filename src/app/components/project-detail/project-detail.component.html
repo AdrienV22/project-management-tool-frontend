@@ -196,17 +196,35 @@
 
     <ul>
       <li *ngFor="let t of tasks">
-        <strong>{{ t.title }}</strong>
-        <span> — {{ t.status }} / {{ t.priority }}</span>
+        <div class="task-row">
+          <div class="task-main">
+            <strong>{{ t.title }}</strong>
+            <span> — {{ t.status }} / {{ t.priority }}</span>
+          </div>
 
-        <button
-          *ngIf="canViewTaskHistory"
-          type="button"
-          (click)="loadHistory(t.id!)"
-          aria-label="Voir historique"
-        >
-          Historique
-        </button>
+          <button
+            *ngIf="canViewTaskHistory"
+            type="button"
+            (click)="loadHistory(t.id!)"
+            aria-label="Voir historique"
+          >
+            {{ visibleHistoryTaskId === t.id ? 'Masquer' : 'Historique' }}
+          </button>
+        </div>
+
+        <!-- Historique affiché sous la tâche -->
+        <div class="history" *ngIf="visibleHistoryTaskId === t.id">
+          <div *ngIf="selectedTaskHistory.length === 0" class="muted">
+            Aucun historique pour l’instant.
+          </div>
+
+          <ul *ngIf="selectedTaskHistory.length > 0">
+            <li *ngFor="let h of selectedTaskHistory">
+              <strong>{{ h.changedAt | date:'short' }}</strong>
+              <span> — {{ h.changeType || 'Modification' }}</span>
+            </li>
+          </ul>
+        </div>
       </li>
     </ul>
   </section>

@@ -31,6 +31,10 @@ export class ProjectDetailComponent implements OnInit {
   // ✅ Rôle courant sur CE projet (clé RNCP)
   currentUserRole: ProjectRole = 'NONE';
 
+  // ✅ Historique UI
+  selectedTaskHistory: any[] = [];
+  visibleHistoryTaskId: number | null = null;
+
   // ✅ Helpers UI (permissions)
   get canInvite(): boolean {
     return this.currentUserRole === 'ADMIN';
@@ -63,7 +67,7 @@ export class ProjectDetailComponent implements OnInit {
     status: 'En cours',
     priority: 'MOYENNE',
     targetUserId: 0,
-    project: { id: 0 }
+    project: { id: 0 },
   };
 
   constructor(
@@ -89,17 +93,26 @@ export class ProjectDetailComponent implements OnInit {
     this.newTask.project = { id: projectId };
   }
 
+  private getCurrentUserEmailLower(): string {
+    return (this.authService.getLoggedInUserEmail?.() || localStorage.getItem('userEmail') || '')
+      .trim()
+      .toLowerCase();
+  }
+
   private fetchProject(projectId: number): void {
     this.loading = true;
     this.projectService.getProjectById(projectId).subscribe({
       next: (data) => {
         this.project = data;
         this.loading = false;
+
+        // ✅ Le rôle peut dépendre du clientEmail -> recalcul après chargement projet
+        this.resolveCurrentUserRole();
       },
       error: () => {
         this.error = 'Erreur lors du chargement du projet';
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -109,16 +122,12 @@ export class ProjectDetailComponent implements OnInit {
         this.members = data || [];
         this.resolveCurrentUserRole();
       },
-      error: (e) => console.error('Erreur members', e)
+      error: (e) => console.error('Erreur members', e),
     });
   }
 
   private resolveCurrentUserRole(): void {
-    const myEmail =
-      (this.authService.getLoggedInUserEmail?.() || localStorage.getItem('userEmail') || '')
-        .trim()
-        .toLowerCase();
-
+    const myEmail = this.getCurrentUserEmailLower();
     if (!myEmail) {
       this.currentUserRole = 'NONE';
       return;
@@ -138,7 +147,7 @@ export class ProjectDetailComponent implements OnInit {
 
     this.currentUserRole = (match?.role as ProjectRole) || 'NONE';
 
-    // ✅ UX : si observateur, on force l’assignation vers soi (ou on laisse, mais on masque le form)
+    // UX : si observateur, on force l’assignation vers soi (et de toute façon le form est masqué)
     if (this.currentUserRole === 'OBSERVATEUR') {
       const currentUserId = this.authService.getUserId();
       if (currentUserId) this.newTask.targetUserId = currentUserId;
@@ -148,7 +157,7 @@ export class ProjectDetailComponent implements OnInit {
   private loadTasks(projectId: number): void {
     this.taskService.getTasks({ projectId }).subscribe({
       next: (data) => (this.tasks = data || []),
-      error: (e) => console.error('Erreur tasks', e)
+      error: (e) => console.error('Erreur tasks', e),
     });
   }
 
@@ -182,7 +191,7 @@ export class ProjectDetailComponent implements OnInit {
       error: () => {
         this.error = 'Erreur lors de la mise à jour';
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -197,32 +206,36 @@ export class ProjectDetailComponent implements OnInit {
       error: () => {
         this.error = 'Erreur lors de la suppression';
         this.loading = false;
-      }
+      },
     });
   }
 
   inviteMember(): void {
     if (!this.canInvite) return;
 
-    if (!this.project?.id || !this.inviteEmail || !this.inviteRole) return;
+    const cleanEmail = (this.inviteEmail || '').trim();
+    if (!this.project?.id || !cleanEmail || !this.inviteRole) return;
 
-    this.projectService.addUserToProject(this.project.id, this.inviteEmail, this.inviteRole).subscribe({
+    this.projectService.addUserToProject(this.project.id, cleanEmail, this.inviteRole).subscribe({
       next: () => {
         this.inviteEmail = '';
         this.inviteRole = 'MEMBRE';
         this.loadMembers(this.project.id);
       },
-      error: (e) => console.error('Erreur invitation', e)
+      error: (e) => console.error('Erreur invitation', e),
     });
   }
 
   changeUserRole(member: any): void {
     if (!this.canManageRoles) return;
 
-    if (!member?.email || !member?.role) return;
-    this.projectService.addUserToProject(this.project.id, member.email, member.role).subscribe({
+    const email = String(member?.email || '').trim();
+    const role = member?.role;
+    if (!email || !role) return;
+
+    this.projectService.addUserToProject(this.project.id, email, role).subscribe({
       next: () => this.loadMembers(this.project.id),
-      error: (e) => console.error('Erreur role', e)
+      error: (e) => console.error('Erreur role', e),
     });
   }
 
@@ -244,20 +257,36 @@ export class ProjectDetailComponent implements OnInit {
           status: 'En cours',
           priority: 'MOYENNE',
           targetUserId: this.authService.getUserId() || 0,
-          project: { id: this.project.id }
+          project: { id: this.project.id },
         };
         this.loadTasks(this.project.id);
+
+        // reset historique affiché (optionnel mais propre)
+        this.visibleHistoryTaskId = null;
+        this.selectedTaskHistory = [];
       },
-      error: (e) => console.error('Erreur création tâche', e)
+      error: (e) => console.error('Erreur création tâche', e),
     });
   }
 
   loadHistory(taskId: number): void {
     if (!this.canViewTaskHistory) return;
 
+    // toggle
+    if (this.visibleHistoryTaskId === taskId) {
+      this.visibleHistoryTaskId = null;
+      this.selectedTaskHistory = [];
+      return;
+    }
+
     this.taskService.getTaskHistory(taskId).subscribe({
-      next: (h) => console.log('History', h),
-      error: (e) => console.error('History error', e)
+      next: (h) => {
+        this.selectedTaskHistory = h || [];
+        this.visibleHistoryTaskId = taskId;
+      },
+      error: () => {
+        this.error = 'Impossible de récupérer l’historique.';
+      },
     });
   }
 }
