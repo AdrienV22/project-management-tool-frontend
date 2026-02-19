@@ -1,7 +1,7 @@
 <div class="task-list-container">
   <h1>Liste des Tâches</h1>
 
-  <!-- ✅ RETOUR PROJET -->
+  <!-- RETOUR PROJET -->
   <div class="back-button-wrapper">
     <button type="button" class="back-btn" (click)="goBackToProject()">
       ← Revenir au projet
@@ -59,6 +59,27 @@
           <option value="BASSE">Basse</option>
         </select>
       </div>
+
+      <!-- ✅ ASSIGNATION (nouveau) -->
+      <div class="field">
+        <label for="targetUserId">Assigner à</label>
+        <select
+          id="targetUserId"
+          [(ngModel)]="newTask.targetUserId"
+          name="targetUserId"
+          required
+        >
+          <option [ngValue]="userId">Moi</option>
+
+          <option
+            *ngFor="let m of members"
+            [ngValue]="m.userId"
+            [hidden]="m.userId === userId"
+          >
+            {{ m.username }} ({{ m.role }})
+          </option>
+        </select>
+      </div>
     </div>
 
     <button type="submit" [disabled]="!createForm.form.valid">Créer</button>
@@ -83,7 +104,6 @@
   <ng-container *ngIf="tasks.length > 0; else emptyTasks">
     <ul class="task-list">
       <ng-container *ngFor="let task of tasks | statusFilter:selectedStatus">
-        <!-- ✅ Narrow: task n'est jamais null/undefined ici -->
         <ng-container *ngIf="task as t">
           <li>
             <!-- ====== MODE LECTURE ====== -->
@@ -135,7 +155,6 @@
 
             <!-- ====== MODE ÉDITION ====== -->
             <div class="edit-form" *ngIf="editingTask?.id === t.id">
-              <!-- ✅ Narrow: editingTask n'est jamais null ici -->
               <ng-container *ngIf="editingTask as et">
                 <form (ngSubmit)="updateTask()" #editForm="ngForm">
                   <h4>Modifier la tâche</h4>

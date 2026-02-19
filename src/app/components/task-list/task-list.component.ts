@@ -3,9 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { TaskService, Task, TaskStatus, TaskPriority } from '../../services/task.service';
+import {
+  TaskService,
+  Task,
+  TaskStatus,
+  TaskPriority
+} from '../../services/task.service';
+
 import { AuthService } from '../../services/auth.service';
 import { StatusFilterPipe } from '../../pipes/status-filter.pipe';
+import { ProjectService } from '../../services/project.service';
 
 @Component({
   selector: 'app-task-list',
@@ -15,7 +22,9 @@ import { StatusFilterPipe } from '../../pipes/status-filter.pipe';
   styleUrls: ['./task-list.component.css'],
 })
 export class TaskListComponent implements OnInit {
+
   tasks: Task[] = [];
+  members: any[] = [];
 
   errorMessage = '';
   successMessage = '';
@@ -44,11 +53,13 @@ export class TaskListComponent implements OnInit {
     private taskService: TaskService,
     private authService: AuthService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private projectService: ProjectService
   ) {}
 
   ngOnInit(): void {
-    // ✅ userId depuis localStorage
+
+    // ===== USER =====
     const uid = this.authService.getUserId();
     if (!uid) {
       this.errorMessage = 'Utilisateur non connecté.';
@@ -56,7 +67,7 @@ export class TaskListComponent implements OnInit {
     }
     this.userId = uid;
 
-    // ✅ projectId depuis l'URL (supporte :id ou :projectId)
+    // ===== PROJECT ID =====
     const raw =
       this.route.snapshot.paramMap.get('projectId') ??
       this.route.snapshot.paramMap.get('id');
@@ -70,13 +81,15 @@ export class TaskListComponent implements OnInit {
 
     this.resetNewTask();
     this.loadTasks();
+    this.loadMembers();
   }
 
-  // ✅ Bouton retour
+  // ===== Navigation =====
   goBackToProject(): void {
     this.router.navigate(['/projects', this.projectId]);
   }
 
+  // ===== TASKS =====
   private loadTasks(): void {
     this.taskService.getTasks({ projectId: this.projectId }).subscribe({
       next: (data) => {
@@ -90,13 +103,33 @@ export class TaskListComponent implements OnInit {
     });
   }
 
+  // ===== MEMBERS (robuste) =====
+  private loadMembers(): void {
+    this.projectService.getProjectMembers(this.projectId).subscribe({
+      next: (data) => {
+        this.members = (data || []).filter(
+          (m: any) => m && typeof m.userId === 'number'
+        );
+      },
+      error: (e) => {
+        console.error('Erreur members', e);
+      },
+    });
+  }
+
+  // ===== CREATE TASK =====
   createTask(): void {
     this.errorMessage = '';
     this.successMessage = '';
 
+    const targetId =
+      this.newTask.targetUserId && this.newTask.targetUserId > 0
+        ? this.newTask.targetUserId
+        : this.userId;
+
     const payload: Task = {
       ...this.newTask,
-      targetUserId: this.userId,
+      targetUserId: targetId,
       project: { id: this.projectId },
     };
 
@@ -113,6 +146,7 @@ export class TaskListComponent implements OnInit {
     });
   }
 
+  // ===== EDIT TASK =====
   startEditing(task: Task): void {
     if (!task?.id) return;
     this.editingTask = { ...(task as any), id: task.id };
@@ -143,7 +177,9 @@ export class TaskListComponent implements OnInit {
     this.taskService.updateTask(taskId, payload).subscribe({
       next: (updatedTask) => {
         const index = this.tasks.findIndex((t) => t.id === updatedTask.id);
-        if (index !== -1) this.tasks[index] = updatedTask;
+        if (index !== -1) {
+          this.tasks[index] = updatedTask;
+        }
 
         this.successMessage = 'Tâche mise à jour avec succès.';
         this.editingTask = null;
@@ -155,6 +191,7 @@ export class TaskListComponent implements OnInit {
     });
   }
 
+  // ===== DELETE =====
   deleteTask(id: number): void {
     if (!id) return;
 
@@ -173,6 +210,7 @@ export class TaskListComponent implements OnInit {
     });
   }
 
+  // ===== HISTORY =====
   showHistory(taskId: number | undefined): void {
     if (!taskId) return;
 
@@ -193,6 +231,7 @@ export class TaskListComponent implements OnInit {
     });
   }
 
+  // ===== RESET =====
   private resetNewTask(): void {
     this.newTask = {
       title: '',
@@ -200,7 +239,7 @@ export class TaskListComponent implements OnInit {
       dueDate: null,
       status: 'En attente',
       priority: 'MOYENNE' as TaskPriority,
-      targetUserId: this.userId,
+      targetUserId: this.userId, // par défaut : moi
       project: { id: this.projectId },
     };
   }
