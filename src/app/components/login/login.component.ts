@@ -26,30 +26,26 @@ export class LoginComponent {
 
     if (!email || !password) {
       this.errorMessage = 'Veuillez remplir tous les champs.';
-      this.isLoading = false;
       return;
     }
 
     this.isLoading = true;
 
     this.authService.login(email, password).subscribe({
-      next: (response: any) => {
-        // Auth valide uniquement si success + userId présent
+      next: (response) => {
+        // ✅ Auth valide uniquement si success + userId présent
         if (response?.status === 'success' && response?.userId) {
-          this.authService.setLoggedIn(
-            response.email ?? email,
-            response.userId,
-            response.username,
-            response.role
-          );
+          // AuthService.login() fait déjà setLoggedIn via tap,
+          // mais on garde défensif au cas où.
+          this.authService.setLoggedIn(response.email ?? email, response.userId);
 
           this.isLoading = false;
           this.router.navigate(['/projects']);
-        } else {
-          // 🔒 Cas incohérent (ex: success sans userId ou status=error)
-          this.isLoading = false;
-          this.errorMessage = 'Connexion impossible.';
+          return;
         }
+
+        this.isLoading = false;
+        this.errorMessage = response?.message ?? 'Connexion impossible.';
       },
       error: (error) => {
         this.isLoading = false;

@@ -44,7 +44,7 @@ describe('LoginComponent', () => {
     expect(authService.login).not.toHaveBeenCalled();
   });
 
-  it('should login and call setLoggedIn when status is success and userId exists, then navigate', () => {
+  it('should login and call setLoggedIn(email, userId) when success + userId, then navigate', () => {
     component.email = 'john@example.com';
     component.password = 'secret';
 
@@ -54,22 +54,20 @@ describe('LoginComponent', () => {
         message: 'Connexion réussie !',
         userId: 123,
         email: 'john@example.com',
-        username: 'john',
-        role: 'ADMIN',
       } as any)
     );
 
     component.onSubmit();
 
     expect(authService.login).toHaveBeenCalledWith('john@example.com', 'secret');
-    expect(authService.setLoggedIn).toHaveBeenCalledWith('john@example.com', 123, 'john', 'ADMIN');
+    expect(authService.setLoggedIn).toHaveBeenCalledWith('john@example.com', 123);
 
     expect(component.isLoading).toBeFalse();
     expect(router.navigate).toHaveBeenCalledWith(['/projects']);
     expect(component.errorMessage).toBeNull();
   });
 
-  it('should NOT navigate and should set errorMessage when status is not success (no setLoggedIn)', () => {
+  it('should NOT navigate and should set backend message when status is not success', () => {
     component.email = 'john@example.com';
     component.password = 'secret';
 
@@ -89,8 +87,7 @@ describe('LoginComponent', () => {
 
     expect(component.isLoading).toBeFalse();
     expect(router.navigate).not.toHaveBeenCalled();
-    expect(component.errorMessage).toBe('Connexion impossible.');
-
+    expect(component.errorMessage).toBe('Bad credentials');
   });
 
   it('should NOT navigate and should set errorMessage when userId is missing (defensive branch)', () => {
@@ -113,7 +110,7 @@ describe('LoginComponent', () => {
 
     expect(component.isLoading).toBeFalse();
     expect(router.navigate).not.toHaveBeenCalled();
-    expect(component.errorMessage).toBe('Connexion impossible.');
+    expect(component.errorMessage).toBe('Connexion réussie !');
   });
 
   it('should set errorMessage for 401/400 errors', () => {

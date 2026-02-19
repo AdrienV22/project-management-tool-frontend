@@ -1,137 +1,172 @@
-<div class="projects-container">
-  <h1>Vos projets</h1>
+<div class="page">
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        <span>Project Management Tool</span>
+      </div>
+      <span class="subtitle">Vos projets</span>
+    </div>
 
-  <div class="add-project-section">
-    <button class="add-project-btn" (click)="toggleAddProjectForm()">
-      {{ showAddProjectForm ? 'Annuler' : 'Ajouter un projet' }}
-    </button>
-  </div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost" (click)="toggleAddProjectForm()">
+        {{ showAddProjectForm ? 'Annuler' : 'Ajouter un projet' }}
+      </button>
+      <button class="btn btn-primary" (click)="logout()">Se déconnecter</button>
+    </div>
+  </header>
 
-  <div class="add-project-form" *ngIf="showAddProjectForm">
-    <form (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="name">Nom du projet</label>
-        <input
-          type="text"
-          id="name"
-          [(ngModel)]="newProject.name"
-          name="name"
-          class="form-control"
-          required
-        />
+  <section class="panel" *ngIf="showAddProjectForm">
+    <div class="panel-header">
+      <h2>Créer un projet</h2>
+      <p>Renseignez les informations essentielles.</p>
+    </div>
+
+    <form class="form" (ngSubmit)="onSubmit()">
+      <div class="grid">
+        <div class="field">
+          <label for="name">Nom du projet</label>
+          <input
+            type="text"
+            id="name"
+            [(ngModel)]="newProject.name"
+            name="name"
+            required
+            placeholder="ex: P1 - Validation"
+          />
+        </div>
+
+        <div class="field">
+          <label for="status">Statut</label>
+          <select
+            id="status"
+            [(ngModel)]="newProject.status"
+            name="status"
+            required
+          >
+            <option value="pending">En attente</option>
+            <option value="in_progress">En cours</option>
+            <option value="completed">Terminé</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="description">Description</label>
+          <textarea
+            id="description"
+            [(ngModel)]="newProject.description"
+            name="description"
+            required
+            placeholder="Objectif, contexte, livrable..."
+          ></textarea>
+        </div>
+
+        <div class="field">
+          <label for="startDate">Date de début</label>
+          <input
+            type="date"
+            id="startDate"
+            [(ngModel)]="newProject.startDate"
+            name="startDate"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label for="endDate">Date de fin</label>
+          <input
+            type="date"
+            id="endDate"
+            [(ngModel)]="newProject.endDate"
+            name="endDate"
+            required
+          />
+        </div>
+
+        <div class="field full">
+          <label for="clientEmail">Chef de projet (email)</label>
+          <input
+            type="email"
+            id="clientEmail"
+            [(ngModel)]="newProject.clientEmail"
+            name="clientEmail"
+            required
+            placeholder="ex: u1.admin@test.com"
+          />
+        </div>
       </div>
 
-      <div class="form-group">
-        <label for="description">Description</label>
-        <textarea
-          id="description"
-          [(ngModel)]="newProject.description"
-          name="description"
-          class="form-control"
-          required
-        ></textarea>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Créer le projet</button>
+        <button type="button" class="btn btn-ghost" (click)="toggleAddProjectForm()">Annuler</button>
       </div>
-
-      <div class="form-group">
-        <label for="startDate">Date de début</label>
-        <input
-          type="date"
-          id="startDate"
-          [(ngModel)]="newProject.startDate"
-          name="startDate"
-          class="form-control"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="endDate">Date de fin</label>
-        <input
-          type="date"
-          id="endDate"
-          [(ngModel)]="newProject.endDate"
-          name="endDate"
-          class="form-control"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="clientEmail">Chef de projet (email)</label>
-        <input
-          type="email"
-          id="clientEmail"
-          [(ngModel)]="newProject.clientEmail"
-          name="clientEmail"
-          class="form-control"
-          required
-          placeholder="ex: u1.admin@test.com"
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="status">Statut</label>
-        <select
-          id="status"
-          [(ngModel)]="newProject.status"
-          name="status"
-          class="form-control"
-          required
-        >
-          <option value="pending">En attente</option>
-          <option value="in_progress">En cours</option>
-          <option value="completed">Terminé</option>
-        </select>
-      </div>
-
-      <button type="submit" class="btn btn-primary">Créer le projet</button>
     </form>
-  </div>
+  </section>
 
-  <div *ngIf="errorMessage" class="error-message">
+  <div *ngIf="errorMessage" class="alert">
     {{ errorMessage }}
   </div>
 
-  <ul class="projects-list" *ngIf="projects.length > 0; else noProjects">
-    <li class="project-item" *ngFor="let project of projects">
-      <div class="project-info">
-        <h3>{{ project.name }}</h3>
-        <p>{{ project.description }}</p>
-        <p><strong>Chef de projet:</strong> {{ project.clientEmail || project.client }}</p>
+  <section class="cards" *ngIf="projects.length > 0; else noProjects">
+    <article class="card" *ngFor="let project of projects">
+      <div class="card-head">
+        <div>
+          <h3 class="card-title">{{ project.name }}</h3>
+          <p class="card-sub">{{ project.description }}</p>
+        </div>
+        <div class="badge">{{ project.status || 'pending' }}</div>
       </div>
 
-      <div class="project-actions">
-        <button class="view-project-btn" (click)="viewProjectDetails(project.id)">
-          Voir les détails
-        </button>
-
-        <button class="view-tasks-btn" (click)="viewProjectTasks(project.id)">
-          Voir les tâches du projet
-        </button>
+      <div class="meta">
+        <div class="meta-row">
+          <span class="meta-label">Chef de projet</span>
+          <span class="meta-value">{{ project.clientEmail || project.client }}</span>
+        </div>
       </div>
-    </li>
-  </ul>
+
+      <div class="card-actions">
+        <button class="btn btn-ghost" (click)="viewProjectDetails(project.id)">Voir les détails</button>
+        <button class="btn btn-ghost" (click)="viewProjectTasks(project.id)">Voir les tâches</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <form
+        class="invite"
+        #inviteForm="ngForm"
+        (ngSubmit)="inviteMember(project.id, inviteEmail.value, inviteRole.value)"
+      >
+        <div class="invite-title">Inviter un membre</div>
+
+        <div class="invite-row">
+          <input
+            type="email"
+            name="inviteEmail"
+            required
+            placeholder="email du membre (ex: u2.member@test.com)"
+            #inviteEmail="ngModel"
+            ngModel
+          />
+
+          <select name="inviteRole" required #inviteRole="ngModel" ngModel>
+            <option value="ADMIN">Administrateur</option>
+            <option value="MEMBRE" selected>Membre</option>
+            <option value="OBSERVATEUR">Observateur</option>
+          </select>
+
+          <button class="btn btn-primary" type="submit" [disabled]="!inviteForm.form.valid">
+            Inviter
+          </button>
+        </div>
+      </form>
+    </article>
+  </section>
 
   <ng-template #noProjects>
-    <p>Aucun projet trouvé. Cliquez sur "Ajouter un projet" pour en créer un nouveau.</p>
+    <div class="empty">
+      <h3>Aucun projet</h3>
+      <p>Créez votre premier projet pour commencer.</p>
+      <button class="btn btn-primary" (click)="toggleAddProjectForm()">Ajouter un projet</button>
+    </div>
   </ng-template>
-</div>
-
-<div class="invite-member">
-  <h3>Inviter un membre au projet</h3>
-  <form (ngSubmit)="inviteMember()" #inviteForm="ngForm">
-    <input
-      type="email"
-      [(ngModel)]="inviteEmail"
-      name="email"
-      required
-      placeholder="Adresse email"
-    />
-    <select [(ngModel)]="inviteRole" name="role" required>
-      <option value="ADMIN">Administrateur</option>
-      <option value="MEMBRE">Membre</option>
-      <option value="OBSERVATEUR">Observateur</option>
-    </select>
-    <button type="submit" [disabled]="!inviteForm.form.valid">Inviter</button>
-  </form>
 </div>

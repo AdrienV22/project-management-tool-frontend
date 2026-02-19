@@ -15,12 +15,15 @@ describe('ProjectsComponent', () => {
   let router: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
-    projectService = jasmine.createSpyObj<ProjectService>('ProjectService', ['getProjects', 'addProject']);
+    projectService = jasmine.createSpyObj<ProjectService>('ProjectService', [
+      'getProjects',
+      'addProject',
+      'addUserToProject',
+    ]);
     authService = jasmine.createSpyObj<AuthService>('AuthService', ['logout']);
     router = jasmine.createSpyObj<Router>('Router', ['navigate']);
 
     spyOn(console, 'error');
-    spyOn(console, 'log');
 
     await TestBed.configureTestingModule({
       imports: [ProjectsComponent],
@@ -83,7 +86,7 @@ describe('ProjectsComponent', () => {
       startDate: '',
       endDate: '',
       status: 'pending',
-      clientEmail: ''
+      clientEmail: '',
     } as any;
 
     component.onSubmit();
@@ -104,17 +107,14 @@ describe('ProjectsComponent', () => {
       startDate: '2026-02-01',
       endDate: '2026-03-01',
       status: 'pending',
-      clientEmail: 'u1.admin@test.com'
+      clientEmail: 'u1.admin@test.com',
     } as any;
 
-    projectService.addProject.and.returnValue(
-      of({ id: 99, name: 'Nouveau' } as any)
-    );
+    projectService.addProject.and.returnValue(of({ id: 99, name: 'Nouveau' } as any));
 
     component.onSubmit();
 
     expect(projectService.addProject).toHaveBeenCalled();
-
     expect(component.projects.length).toBe(1);
     expect(component.projects[0].id).toBe(99);
 
@@ -131,17 +131,32 @@ describe('ProjectsComponent', () => {
       startDate: '2026-02-01',
       endDate: '2026-03-01',
       status: 'pending',
-      clientEmail: 'u1.admin@test.com'
+      clientEmail: 'u1.admin@test.com',
     } as any;
 
-    projectService.addProject.and.returnValue(
-      throwError(() => ({ status: 500 }))
-    );
+    projectService.addProject.and.returnValue(throwError(() => ({ status: 500 })));
 
     component.onSubmit();
 
     expect(console.error).toHaveBeenCalled();
     expect(component.errorMessage).toBe("Impossible d'ajouter le projet.");
+  });
+
+  it('should invite member and call backend', () => {
+    projectService.addUserToProject.and.returnValue(of({ ok: true } as any));
+
+    component.inviteMember(1, 'u2.member@test.com', 'MEMBRE');
+
+    expect(projectService.addUserToProject).toHaveBeenCalledWith(1, 'u2.member@test.com', 'MEMBRE');
+  });
+
+  it('should handle invite member error', () => {
+    projectService.addUserToProject.and.returnValue(throwError(() => ({ status: 500 })));
+
+    component.inviteMember(1, 'u2.member@test.com', 'MEMBRE');
+
+    expect(console.error).toHaveBeenCalled();
+    expect(component.errorMessage).toBe("Impossible d'inviter ce membre.");
   });
 
   it('should navigate to project details', () => {
@@ -152,15 +167,6 @@ describe('ProjectsComponent', () => {
   it('should navigate to project tasks', () => {
     component.viewProjectTasks(10);
     expect(router.navigate).toHaveBeenCalledWith(['/projects', 10, 'tasks']);
-  });
-
-  it('should log invite member', () => {
-    component.inviteEmail = 'x@y.com';
-    component.inviteRole = 'MEMBRE';
-
-    component.inviteMember();
-
-    expect(console.log).toHaveBeenCalled();
   });
 
   it('should logout and redirect to /login', () => {

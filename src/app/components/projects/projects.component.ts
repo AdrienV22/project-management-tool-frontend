@@ -15,18 +15,16 @@ export class ProjectsComponent implements OnInit {
   projects: any[] = [];
   errorMessage: string | null = null;
 
-  showAddProjectForm: boolean = false;
+  showAddProjectForm = false;
+
   newProject: any = {
     name: '',
     description: '',
     startDate: '',
     endDate: '',
     status: 'pending',
-    clientEmail: '' 
+    clientEmail: ''
   };
-
-  inviteEmail: string = '';
-  inviteRole: string = 'MEMBRE';
 
   constructor(
     private authService: AuthService,
@@ -62,15 +60,10 @@ export class ProjectsComponent implements OnInit {
       return;
     }
 
-    // Dates optionnelles : ne convertit que si renseignées
     const payload: any = { ...this.newProject };
 
-    if (payload.startDate) {
-      payload.startDate = new Date(payload.startDate).toISOString().split('T')[0];
-    }
-    if (payload.endDate) {
-      payload.endDate = new Date(payload.endDate).toISOString().split('T')[0];
-    }
+    if (payload.startDate) payload.startDate = new Date(payload.startDate).toISOString().split('T')[0];
+    if (payload.endDate) payload.endDate = new Date(payload.endDate).toISOString().split('T')[0];
 
     this.projectService.addProject(payload).subscribe(
       (response) => {
@@ -104,8 +97,23 @@ export class ProjectsComponent implements OnInit {
     this.router.navigate(['/projects', projectId, 'tasks']);
   }
 
-  inviteMember() {
-    console.log('Invitation envoyée à', this.inviteEmail, 'avec le rôle', this.inviteRole);
+  // ✅ Invitation directement sur une carte projet (et donc bon projectId)
+  inviteMember(projectId: number, email: string, role: string) {
+    const cleanEmail = (email ?? '').trim();
+    if (!cleanEmail) {
+      this.errorMessage = 'Veuillez saisir un email valide.';
+      return;
+    }
+
+    this.projectService.addUserToProject(projectId, cleanEmail, role).subscribe({
+      next: () => {
+        this.errorMessage = null;
+      },
+      error: (err) => {
+        console.error("Erreur lors de l'invitation:", err);
+        this.errorMessage = "Impossible d'inviter ce membre.";
+      }
+    });
   }
 
   logout() {

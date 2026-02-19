@@ -4,20 +4,22 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
 export type LoginResponse = {
-  status: 'success' | 'error';
-  message: string;
-  userId: number;
-  email: string;
+  status?: 'success' | 'error';
+  message?: string;
+  userId?: number;
+  email?: string;
   username?: string;
-  role?: 'ADMIN' | 'MEMBRE' | 'OBSERVATEUR';
+  role?: string;
+  token?: string; // optionnel si jamais tu l’ajoutes un jour
 };
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class AuthService {
   private apiUrl = 'http://localhost:8080/api/auth';
 
-  // ✅ on est "auth" si userId existe (pas de token dans ce projet)
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasSession());
+  private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasUserId());
   private isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
   constructor(private http: HttpClient) {}
@@ -27,10 +29,9 @@ export class AuthService {
       .post<LoginResponse>(`${this.apiUrl}/login`, { email, password })
       .pipe(
         tap((res) => {
-          if (res?.status === 'success' && res.userId != null) {
-            this.setLoggedIn(res.email ?? email, res.userId, res.username, res.role);
-          } else {
-            this.logout();
+          // ✅ Projet sans Spring Security : on se base sur status + userId
+          if (res?.status === 'success' && res?.userId) {
+            this.setLoggedIn(res.email ?? email, res.userId);
           }
         })
       );
@@ -48,21 +49,17 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userId');
-    localStorage.removeItem('username');
-    localStorage.removeItem('role');
     this.isAuthenticatedSubject.next(false);
   }
 
-  setLoggedIn(email: string, userId: number, username?: string, role?: string): void {
+  setLoggedIn(email: string, userId: number): void {
     localStorage.setItem('userEmail', email);
     localStorage.setItem('userId', String(userId));
-    if (username) localStorage.setItem('username', username);
-    if (role) localStorage.setItem('role', role);
     this.isAuthenticatedSubject.next(true);
   }
 
   isLoggedIn(): boolean {
-    return this.hasSession();
+    return this.hasUserId();
   }
 
   getAuthStatus(): Observable<boolean> {
@@ -78,11 +75,7 @@ export class AuthService {
     return value ? Number(value) : null;
   }
 
-  getRole(): string | null {
-    return localStorage.getItem('role');
-  }
-
-  private hasSession(): boolean {
+  private hasUserId(): boolean {
     return !!localStorage.getItem('userId');
   }
 }
