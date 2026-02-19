@@ -1,84 +1,116 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { ProjectService } from './project.service';
+import { AuthService, LoginResponse } from './auth.service';
 
-describe('ProjectService', () => {
-  let service: ProjectService;
+describe('AuthService', () => {
+  let service: AuthService;
   let httpMock: HttpTestingController;
 
-  const API = 'http://localhost:8080/api/projects';
+  const apiUrl = 'http://localhost:8080/api/auth';
 
   beforeEach(() => {
-    spyOn(console, 'error');
+    localStorage.clear();
 
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
+      providers: [AuthService],
     });
 
-    service = TestBed.inject(ProjectService);
+    service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => {
-    httpMock.verify();
-  });
+  afterEach(() => httpMock.verify());
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
+  it('login() should POST and setLoggedIn when success + userId', () => {
+    const res: LoginResponse = {
+      status: 'success',
+      userId: 42,
+      email: 'test@mail.com',
+      role: 'ADMIN',
+    };
 
-  it('should GET projects (success)', () => {
-    let result: any;
-
-    service.getProjects().subscribe((r) => (result = r));
-
-    const req = httpMock.expectOne(`${API}`);
-    expect(req.request.method).toBe('GET');
-
-    req.flush([{ id: 1, name: 'P1' }]);
-
-    expect(result).toBeTruthy();
-  });
-
-  it('should handle GET projects error', () => {
-    let receivedError: any;
-
-    service.getProjects().subscribe({
-      next: () => fail('should error'),
-      error: (err) => (receivedError = err),
+    service.login('test@mail.com', 'pw').subscribe((r) => {
+      expect(r.status).toBe('success');
     });
 
-    const req = httpMock.expectOne(`${API}`);
-    expect(req.request.method).toBe('GET');
+    const req = httpMock.expectOne((r) => r.method === 'POST' && r.url === `${apiUrl}/login`);
+    expect(req.request.body).toEqual({ email: 'test@mail.com', password: 'pw' });
 
-    req.flush('boom', { status: 500, statusText: 'Server Error' });
+    req.flush(res);
 
-    expect(receivedError).toBeTruthy();
-    expect(console.error).toHaveBeenCalled();
+    expect(localStorage.getItem('userEmail')).toBe('test@mail.com');
+    expect(localStorage.getItem('userId')).toBe('42');
+    expect(localStorage.getItem('userRole')).toBe('ADMIN');
+    expect(service.isLoggedIn()).toBeTrue();
   });
 
-  it('should PUT addUserToProject with params', () => {
-    service.addUserToProject(10, 'u2.member@test.com', 'MEMBRE').subscribe();
+  it('login() should NOT setLoggedIn when status not success', () => {
+    service.login('x@mail.com', 'pw').subscribe();
 
-    const req = httpMock.expectOne((r) => r.method === 'PUT' && r.url === `${API}/10/users`);
-    expect(req.request.params.get('userEmail')).toBe('u2.member@test.com');
-    expect(req.request.params.get('role')).toBe('MEMBRE');
+    const req = httpMock.expectOne(`${apiUrl}/login`);
+    req.flush({ status: 'error', message: 'nope' });
 
-    req.flush({ ok: true });
+    expect(localStorage.getItem('userId')).toBeNull();
+    expect(service.isLoggedIn()).toBeFalse();
   });
 
-  it('should handle addUserToProject error', () => {
-    let receivedError: any;
+  it('getUserId() should return number when set', () => {
+    localStorage.setItem('userId', '10');
+    expect(service.getUserId()).toBe(10);
+  });
 
-    service.addUserToProject(10, 'u2.member@test.com', 'MEMBRE').subscribe({
-      next: () => fail('should error'),
-      error: (err) => (receivedError = err),
+  it('getUserId() should return null when missing', () => {
+    localStorage.removeItem('userId');
+    expect(service.getUserId()).toBeNull();
+  });
+
+  it('logout() should clear storage and set auth status false', (done) => {
+    localStorage.setItem('userEmail', 'a@b.com');
+    localStorage.setItem('userId', '1');
+    localStorage.setItem('userRole', 'ADMIN');
+
+    // observe auth status
+    service.getAuthStatus().subscribe((isLogged) => {
+      // after logout it should become false at least once
+      if (isLogged === false) {
+        expect(localStorage.getItem('userEmail')).toBeNull();
+        expect(localStorage.getItem('userId')).toBeNull();
+        expect(localStorage.getItem('userRole')).toBeNull();
+        done();
+      }
     });
 
-    const req = httpMock.expectOne((r) => r.method === 'PUT' && r.url === `${API}/10/users`);
-    req.flush('boom', { status: 500, statusText: 'Server Error' });
+    service.logout();
+  });
 
-    expect(receivedError).toBeTruthy();
-    expect(console.error).toHaveBeenCalled();
+  it('getUserEmail() should emit email only when logged in', (done) => {
+    const values: Array<string | null> = [];
+
+    service.getUserEmail().subscribe((v) => {
+      values.push(v);
+      // after we set logged in, we expect non-null
+      if (values.length >= 2) {
+        expect(values[values.length - 1]).toBe('x@y.com');
+        done();
+      }
+    });
+
+    // triggers auth state true
+    service.setLoggedIn('x@y.com', 99, null);
+  });
+
+  it('getUserRole() should emit role only when logged in', (done) => {
+    const values: Array<string | null> = [];
+
+    service.getUserRole().subscribe((v) => {
+      values.push(v);
+      if (values.length >= 2) {
+        expect(values[values.length - 1]).toBe('ADMIN');
+        done();
+      }
+    });
+
+    service.setLoggedIn('x@y.com', 99, 'ADMIN');
   });
 });

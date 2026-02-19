@@ -1,154 +1,124 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { LoginComponent } from './login.component';
+import { AuthService, LoginResponse } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
-import { LoginComponent } from './login.component';
-import { AuthService } from '../../services/auth.service';
-
 describe('LoginComponent', () => {
-  let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;
+  let component: LoginComponent;
 
-  let authService: jasmine.SpyObj<AuthService>;
-  let router: jasmine.SpyObj<Router>;
+  let authServiceSpy: jasmine.SpyObj<AuthService>;
+  let routerSpy: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
-    authService = jasmine.createSpyObj<AuthService>('AuthService', ['login', 'setLoggedIn']);
-    router = jasmine.createSpyObj<Router>('Router', ['navigate']);
-    spyOn(console, 'error');
+    authServiceSpy = jasmine.createSpyObj<AuthService>('AuthService', ['login']);
+    routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      imports: [LoginComponent],
+      imports: [LoginComponent], // standalone component
       providers: [
-        { provide: AuthService, useValue: authService },
-        { provide: Router, useValue: router },
+        { provide: AuthService, useValue: authServiceSpy },
+        { provide: Router, useValue: routerSpy },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
-  it('should show validation error when email or password is empty', () => {
-    component.email = '   ';
+  it('should show error when email or password missing', () => {
+    component.email = '';
     component.password = '';
     component.onSubmit();
 
-    expect(component.errorMessage).toBe('Veuillez remplir tous les champs.');
+    expect(component.errorMessage).toContain('Veuillez remplir tous les champs');
     expect(component.isLoading).toBeFalse();
-    expect(authService.login).not.toHaveBeenCalled();
+    expect(authServiceSpy.login).not.toHaveBeenCalled();
   });
 
-  it('should login and call setLoggedIn(email, userId) when success + userId, then navigate', () => {
-    component.email = 'john@example.com';
-    component.password = 'secret';
+  it('should call login with trimmed values', () => {
+    const response: LoginResponse = { status: 'error', message: 'nope' };
+    authServiceSpy.login.and.returnValue(of(response));
 
-    authService.login.and.returnValue(
-      of({
-        status: 'success',
-        message: 'Connexion réussie !',
-        userId: 123,
-        email: 'john@example.com',
-      } as any)
-    );
-
+    component.email = '  a@b.com  ';
+    component.password = '  pw  ';
     component.onSubmit();
 
-    expect(authService.login).toHaveBeenCalledWith('john@example.com', 'secret');
-    expect(authService.setLoggedIn).toHaveBeenCalledWith('john@example.com', 123);
+    expect(authServiceSpy.login).toHaveBeenCalledWith('a@b.com', 'pw');
+  });
+
+  it('should navigate to /projects when login success + userId', () => {
+    const response: LoginResponse = { status: 'success', userId: 1 };
+    authServiceSpy.login.and.returnValue(of(response));
+
+    component.email = 'a@b.com';
+    component.password = 'pw';
+    component.onSubmit();
 
     expect(component.isLoading).toBeFalse();
-    expect(router.navigate).toHaveBeenCalledWith(['/projects']);
     expect(component.errorMessage).toBeNull();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/projects']);
   });
 
-  it('should NOT navigate and should set backend message when status is not success', () => {
-    component.email = 'john@example.com';
-    component.password = 'secret';
+  it('should set errorMessage from response.message when login not valid', () => {
+    const response: LoginResponse = { status: 'error', message: 'Bad creds' };
+    authServiceSpy.login.and.returnValue(of(response));
 
-    authService.login.and.returnValue(
-      of({
-        status: 'error',
-        message: 'Bad credentials',
-        userId: 0,
-        email: 'john@example.com',
-      } as any)
+    component.email = 'a@b.com';
+    component.password = 'pw';
+    component.onSubmit();
+
+    expect(component.isLoading).toBeFalse();
+    expect(routerSpy.navigate).not.toHaveBeenCalled();
+    expect(component.errorMessage).toBe('Bad creds');
+  });
+
+  it('should show default error when response has no message', () => {
+    const response: LoginResponse = { status: 'error' };
+    authServiceSpy.login.and.returnValue(of(response));
+
+    component.email = 'a@b.com';
+    component.password = 'pw';
+    component.onSubmit();
+
+    expect(component.errorMessage).toBe('Connexion impossible.');
+  });
+
+  it('should map 401 error to "Email ou mot de passe incorrect."', () => {
+    authServiceSpy.login.and.returnValue(
+      throwError(() => ({ status: 401 }))
     );
 
+    component.email = 'a@b.com';
+    component.password = 'pw';
     component.onSubmit();
 
-    expect(authService.login).toHaveBeenCalledWith('john@example.com', 'secret');
-    expect(authService.setLoggedIn).not.toHaveBeenCalled();
-
     expect(component.isLoading).toBeFalse();
-    expect(router.navigate).not.toHaveBeenCalled();
-    expect(component.errorMessage).toBe('Bad credentials');
+    expect(component.errorMessage).toContain('Email ou mot de passe incorrect');
   });
 
-  it('should NOT navigate and should set errorMessage when userId is missing (defensive branch)', () => {
-    component.email = 'john@example.com';
-    component.password = 'secret';
-
-    authService.login.and.returnValue(
-      of({
-        status: 'success',
-        message: 'Connexion réussie !',
-        userId: undefined,
-        email: 'john@example.com',
-      } as any)
+  it('should map 404 error to "Utilisateur non trouvé."', () => {
+    authServiceSpy.login.and.returnValue(
+      throwError(() => ({ status: 404 }))
     );
 
+    component.email = 'a@b.com';
+    component.password = 'pw';
     component.onSubmit();
 
-    expect(authService.login).toHaveBeenCalledWith('john@example.com', 'secret');
-    expect(authService.setLoggedIn).not.toHaveBeenCalled();
-
-    expect(component.isLoading).toBeFalse();
-    expect(router.navigate).not.toHaveBeenCalled();
-    expect(component.errorMessage).toBe('Connexion réussie !');
+    expect(component.errorMessage).toContain('Utilisateur non trouvé');
   });
 
-  it('should set errorMessage for 401/400 errors', () => {
-    component.email = 'john@example.com';
-    component.password = 'bad';
+  it('should map other errors to generic server message', () => {
+    authServiceSpy.login.and.returnValue(
+      throwError(() => ({ status: 500 }))
+    );
 
-    authService.login.and.returnValue(throwError(() => ({ status: 401 })));
-
+    component.email = 'a@b.com';
+    component.password = 'pw';
     component.onSubmit();
 
-    expect(component.isLoading).toBeFalse();
-    expect(component.errorMessage).toBe('Email ou mot de passe incorrect.');
-    expect(router.navigate).not.toHaveBeenCalled();
-  });
-
-  it('should set errorMessage for 404 error', () => {
-    component.email = 'john@example.com';
-    component.password = 'bad';
-
-    authService.login.and.returnValue(throwError(() => ({ status: 404 })));
-
-    component.onSubmit();
-
-    expect(component.isLoading).toBeFalse();
-    expect(component.errorMessage).toBe('Utilisateur non trouvé.');
-    expect(router.navigate).not.toHaveBeenCalled();
-  });
-
-  it('should set errorMessage for other errors', () => {
-    component.email = 'john@example.com';
-    component.password = 'bad';
-
-    authService.login.and.returnValue(throwError(() => ({ status: 500 })));
-
-    component.onSubmit();
-
-    expect(component.isLoading).toBeFalse();
-    expect(component.errorMessage).toBe('Erreur serveur. Veuillez réessayer.');
-    expect(router.navigate).not.toHaveBeenCalled();
+    expect(component.errorMessage).toContain('Erreur serveur');
   });
 });

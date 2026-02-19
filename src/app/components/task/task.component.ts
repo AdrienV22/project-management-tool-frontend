@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { TaskService, Task } from '../../services/task.service';
+import { TaskService, Task, TaskStatus } from '../../services/task.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,160 +16,167 @@ import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 export class TaskComponent implements OnInit {
 
   tasks: Task[] = [];
+
   task: Task = {
-    id: 0,
     title: '',
     description: '',
-    dueDate: '',
-    status: 'New',
-    priority: 'MOYENNE', // Ajout de la propriété priority
-    targetUserId: 1  // Utilisation de l'ID de l'utilisateur
+    dueDate: null,
+    status: 'En attente',
+    priority: 'MOYENNE',
+    targetUserId: 1
   };
 
   // Variables pour la modification
   showEditModal = false;
+
   editingTask: Task = {
-    id: 0,
     title: '',
     description: '',
-    dueDate: '',
-    status: 'New',
+    dueDate: null,
+    status: 'En attente',
     priority: 'MOYENNE',
     targetUserId: 1
   };
 
   constructor(
-    private taskService: TaskService, 
+    private taskService: TaskService,
     private router: Router,
-    private authService: AuthService  // Injecter le service AuthService
-  ) { }
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.loadTasks();
   }
 
   loadTasks(): void {
-    this.taskService.getTasks().subscribe(
-      (data) => {
+    this.taskService.getTasks().subscribe({
+      next: (data) => {
         console.log('Tâches récupérées :', data);
         this.tasks = data;
       },
-      (error) => {
+      error: (error) => {
         console.error('Erreur lors de la récupération des tâches', error);
       }
-    );
+    });
   }
 
-  getTasksByStatus(status: string): Task[] {
+  getTasksByStatus(status: TaskStatus): Task[] {
     return this.tasks.filter(task => task.status === status);
   }
 
   onSubmit(): void {
-    // Récupérer l'ID de l'utilisateur depuis le service AuthService
-    const currentUserId = this.authService.getUserId();  // Utiliser l'ID de l'utilisateur connecté
+    const currentUserId = this.authService.getUserId();
 
-    // Vérifier si l'utilisateur est authentifié avant d'envoyer la tâche
     if (!currentUserId) {
       console.error('Utilisateur non connecté');
-      return; // Si l'utilisateur n'est pas authentifié, on ne soumet pas la tâche
+      return;
     }
 
-    // Ajouter l'ID de l'utilisateur à la tâche
     this.task.targetUserId = currentUserId;
 
-    // Appeler le service pour créer la tâche avec l'ID de l'utilisateur
-    this.taskService.createTask(this.task).subscribe(
-      (response) => {
+    this.taskService.createTask(this.task).subscribe({
+      next: (response) => {
         console.log('Tâche créée avec succès', response);
         this.tasks.push(response);
         this.resetTaskForm();
       },
-      (error) => {
+      error: (error) => {
         console.error('Erreur lors de la création de la tâche', error);
       }
-    );
+    });
   }
 
   resetTaskForm(): void {
     this.task = {
-      id: 0,
       title: '',
       description: '',
-      dueDate: '',
-      status: 'New',
+      dueDate: null,
+      status: 'En attente',
       priority: 'MOYENNE',
       targetUserId: this.authService.getUserId() || 1
     };
   }
 
-  // Méthodes pour le drag & drop
-  onDrop(event: CdkDragDrop<Task[]>, newStatus: string): void {
-    const taskId = event.item.data.id;
-    if (taskId) {
-      const task = this.tasks.find(t => t.id === taskId);
-      if (task) {
-        task.status = newStatus;
-        this.taskService.updateTask(task).subscribe(
-          (updatedTask) => {
-            const index = this.tasks.findIndex(t => t.id === updatedTask.id);
-            if (index !== -1) {
-              this.tasks[index] = updatedTask;
-            }
-          },
-          (error) => {
-            console.error('Erreur lors de la mise à jour du statut', error);
-          }
-        );
+  // Drag & drop
+  onDrop(event: CdkDragDrop<Task[]>, newStatus: TaskStatus): void {
+    const taskId = event.item.data?.id;
+
+    if (!taskId) return;
+
+    const task = this.tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    // Mise à jour locale optimiste
+    task.status = newStatus;
+
+    // ✅ updateTask(taskId, partial)
+    this.taskService.updateTask(taskId, { status: newStatus }).subscribe({
+      next: (updatedTask) => {
+        const index = this.tasks.findIndex(t => t.id === updatedTask.id);
+        if (index !== -1) this.tasks[index] = updatedTask;
+      },
+      error: (error) => {
+        console.error('Erreur lors de la mise à jour du statut', error);
       }
-    }
+    });
   }
 
-  // Méthodes pour la modification
+  // Edition
   editTask(task: Task): void {
     this.editingTask = { ...task };
     this.showEditModal = true;
   }
 
   updateTask(): void {
-    if (this.editingTask.id) {
-      this.taskService.updateTask(this.editingTask).subscribe(
-        (updatedTask) => {
-          const index = this.tasks.findIndex(t => t.id === updatedTask.id);
-          if (index !== -1) {
-            this.tasks[index] = updatedTask;
-          }
-          this.closeEditModal();
-        },
-        (error) => {
-          console.error('Erreur lors de la mise à jour de la tâche', error);
-        }
-      );
-    }
+    const taskId = this.editingTask.id;
+    if (!taskId) return;
+
+    // On envoie uniquement les champs utiles (Partial<Task>)
+    const payload: Partial<Task> = {
+      title: this.editingTask.title,
+      description: this.editingTask.description,
+      dueDate: this.editingTask.dueDate,
+      status: this.editingTask.status,
+      priority: this.editingTask.priority,
+      targetUserId: this.editingTask.targetUserId,
+      project: this.editingTask.project,
+      parentProject: this.editingTask.parentProject,
+    };
+
+    this.taskService.updateTask(taskId, payload).subscribe({
+      next: (updatedTask) => {
+        const index = this.tasks.findIndex(t => t.id === updatedTask.id);
+        if (index !== -1) this.tasks[index] = updatedTask;
+        this.closeEditModal();
+      },
+      error: (error) => {
+        console.error('Erreur lors de la mise à jour de la tâche', error);
+      }
+    });
   }
 
   closeEditModal(): void {
     this.showEditModal = false;
     this.editingTask = {
-      id: 0,
       title: '',
       description: '',
-      dueDate: '',
-      status: 'New',
+      dueDate: null,
+      status: 'En attente',
       priority: 'MOYENNE',
-      targetUserId: 1
+      targetUserId: this.authService.getUserId() || 1
     };
   }
 
   deleteTask(taskId: number): void {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
-      this.taskService.deleteTask(taskId).subscribe(
-        () => {
+      this.taskService.deleteTask(taskId).subscribe({
+        next: () => {
           this.tasks = this.tasks.filter(t => t.id !== taskId);
         },
-        (error) => {
+        error: (error) => {
           console.error('Erreur lors de la suppression de la tâche', error);
         }
-      );
+      });
     }
   }
 }
