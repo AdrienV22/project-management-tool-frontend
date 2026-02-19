@@ -7,6 +7,8 @@ import { ProjectService } from '../../services/project.service';
 import { AuthService } from '../../services/auth.service';
 import { TaskService, Task } from '../../services/task.service';
 
+type ProjectRole = 'ADMIN' | 'MEMBRE' | 'OBSERVATEUR' | 'NONE';
+
 @Component({
   selector: 'app-project-detail',
   templateUrl: './project-detail.component.html',
@@ -25,6 +27,34 @@ export class ProjectDetailComponent implements OnInit {
 
   inviteEmail = '';
   inviteRole: 'ADMIN' | 'MEMBRE' | 'OBSERVATEUR' = 'MEMBRE';
+
+  // ✅ Rôle courant sur CE projet (clé RNCP)
+  currentUserRole: ProjectRole = 'NONE';
+
+  // ✅ Helpers UI (permissions)
+  get canInvite(): boolean {
+    return this.currentUserRole === 'ADMIN';
+  }
+  get canManageRoles(): boolean {
+    return this.currentUserRole === 'ADMIN';
+  }
+  get canCreateTask(): boolean {
+    return this.currentUserRole === 'ADMIN' || this.currentUserRole === 'MEMBRE';
+  }
+  get canAssignTask(): boolean {
+    return this.currentUserRole === 'ADMIN' || this.currentUserRole === 'MEMBRE';
+  }
+  get canUpdateTask(): boolean {
+    return this.currentUserRole === 'ADMIN' || this.currentUserRole === 'MEMBRE';
+  }
+  get canEditProject(): boolean {
+    // traditionnel : seul ADMIN peut modifier/supprimer projet
+    return this.currentUserRole === 'ADMIN';
+  }
+  get canViewTaskHistory(): boolean {
+    // selon ton tableau extrait : historique = ADMIN + MEMBRE (OBSERVATEUR KO)
+    return this.currentUserRole === 'ADMIN' || this.currentUserRole === 'MEMBRE';
+  }
 
   newTask: Task = {
     title: '',
@@ -49,6 +79,7 @@ export class ProjectDetailComponent implements OnInit {
     if (!projectIdStr) return;
 
     const projectId = Number(projectIdStr);
+
     this.fetchProject(projectId);
     this.loadMembers(projectId);
     this.loadTasks(projectId);
@@ -74,19 +105,57 @@ export class ProjectDetailComponent implements OnInit {
 
   private loadMembers(projectId: number): void {
     this.projectService.getProjectMembers(projectId).subscribe({
-      next: (data) => (this.members = data),
+      next: (data) => {
+        this.members = data || [];
+        this.resolveCurrentUserRole();
+      },
       error: (e) => console.error('Erreur members', e)
     });
   }
 
+  private resolveCurrentUserRole(): void {
+    const myEmail =
+      (this.authService.getLoggedInUserEmail?.() || localStorage.getItem('userEmail') || '')
+        .trim()
+        .toLowerCase();
+
+    if (!myEmail) {
+      this.currentUserRole = 'NONE';
+      return;
+    }
+
+    // Si je suis clientEmail : ADMIN
+    const clientEmail = String(this.project?.clientEmail || '').trim().toLowerCase();
+    if (clientEmail && clientEmail === myEmail) {
+      this.currentUserRole = 'ADMIN';
+      return;
+    }
+
+    // Sinon, chercher dans la liste des membres
+    const match = (this.members || []).find(
+      (m: any) => String(m?.email || '').trim().toLowerCase() === myEmail
+    );
+
+    this.currentUserRole = (match?.role as ProjectRole) || 'NONE';
+
+    // ✅ UX : si observateur, on force l’assignation vers soi (ou on laisse, mais on masque le form)
+    if (this.currentUserRole === 'OBSERVATEUR') {
+      const currentUserId = this.authService.getUserId();
+      if (currentUserId) this.newTask.targetUserId = currentUserId;
+    }
+  }
+
   private loadTasks(projectId: number): void {
     this.taskService.getTasks({ projectId }).subscribe({
-      next: (data) => (this.tasks = data),
+      next: (data) => (this.tasks = data || []),
       error: (e) => console.error('Erreur tasks', e)
     });
   }
 
-  enableEditMode(): void { this.isEditing = true; }
+  enableEditMode(): void {
+    if (!this.canEditProject) return;
+    this.isEditing = true;
+  }
 
   cancelEditMode(): void {
     this.isEditing = false;
@@ -94,6 +163,8 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   updateProject(): void {
+    if (!this.canEditProject) return;
+
     this.loading = true;
 
     const updatedProject = {
@@ -116,6 +187,8 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   confirmDelete(): void {
+    if (!this.canEditProject) return;
+
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) return;
 
     this.loading = true;
@@ -129,6 +202,8 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   inviteMember(): void {
+    if (!this.canInvite) return;
+
     if (!this.project?.id || !this.inviteEmail || !this.inviteRole) return;
 
     this.projectService.addUserToProject(this.project.id, this.inviteEmail, this.inviteRole).subscribe({
@@ -142,6 +217,8 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   changeUserRole(member: any): void {
+    if (!this.canManageRoles) return;
+
     if (!member?.email || !member?.role) return;
     this.projectService.addUserToProject(this.project.id, member.email, member.role).subscribe({
       next: () => this.loadMembers(this.project.id),
@@ -150,6 +227,7 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   createTask(): void {
+    if (!this.canCreateTask) return;
     if (!this.project?.id) return;
 
     const payload: Task = {
@@ -175,6 +253,8 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   loadHistory(taskId: number): void {
+    if (!this.canViewTaskHistory) return;
+
     this.taskService.getTaskHistory(taskId).subscribe({
       next: (h) => console.log('History', h),
       error: (e) => console.error('History error', e)

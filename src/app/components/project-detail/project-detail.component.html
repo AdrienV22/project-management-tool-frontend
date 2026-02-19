@@ -1,7 +1,12 @@
 <div class="project-detail-container" *ngIf="!loading; else loadingTemplate">
   <header class="project-header">
-    <h1>Détails du projet : {{ project?.name }}</h1>
-    <p class="project-description">{{ project?.description }}</p>
+    <div class="header-left">
+      <h1>Détails du projet : {{ project?.name }}</h1>
+      <p class="project-description">{{ project?.description }}</p>
+      <div class="role-pill" *ngIf="currentUserRole !== 'NONE'">
+        Rôle : <strong>{{ currentUserRole }}</strong>
+      </div>
+    </div>
   </header>
 
   <!-- ========= MODE LECTURE ========= -->
@@ -13,13 +18,17 @@
       <div><strong>Chef de projet :</strong> <strong>{{ project?.clientEmail }}</strong></div>
     </div>
 
-    <div class="button-group">
+    <div class="button-group" *ngIf="canEditProject">
       <button type="button" (click)="enableEditMode()" class="edit-button" aria-label="Modifier le projet">
         Modifier
       </button>
       <button type="button" (click)="confirmDelete()" class="delete-button" aria-label="Supprimer le projet">
         Supprimer
       </button>
+    </div>
+
+    <div class="info-note" *ngIf="!canEditProject">
+      Vous pouvez consulter ce projet, mais vous n’avez pas les droits pour le modifier.
     </div>
   </form>
 
@@ -82,8 +91,8 @@
     </form>
   </ng-template>
 
-  <!-- ========= INVITER MEMBRE (PAGE PROJET) ========= -->
-  <section class="invite-member" aria-label="Inviter un membre">
+  <!-- ========= INVITER MEMBRE (ADMIN uniquement) ========= -->
+  <section class="invite-member" *ngIf="canInvite" aria-label="Inviter un membre">
     <h3>Inviter un membre au projet</h3>
 
     <form (ngSubmit)="inviteMember()" #inviteForm="ngForm" class="invite-form">
@@ -105,7 +114,7 @@
     </form>
   </section>
 
-  <!-- ========= MEMBRES + CHANGEMENT DE RÔLE ========= -->
+  <!-- ========= MEMBRES + CHANGEMENT DE RÔLE (ADMIN uniquement) ========= -->
   <section class="project-members" *ngIf="members?.length" aria-label="Membres du projet">
     <h3>Membres du projet</h3>
 
@@ -117,6 +126,7 @@
           [(ngModel)]="member.role"
           (change)="changeUserRole(member)"
           [name]="'memberRole-' + member.userId"
+          [disabled]="!canManageRoles"
         >
           <option value="ADMIN">Admin</option>
           <option value="MEMBRE">Membre</option>
@@ -126,8 +136,8 @@
     </ul>
   </section>
 
-  <!-- ========= CRÉATION TÂCHE ========= -->
-  <section class="task-creation" aria-label="Créer une tâche">
+  <!-- ========= CRÉATION TÂCHE (ADMIN/MEMBRE) ========= -->
+  <section class="task-creation" *ngIf="canCreateTask" aria-label="Créer une tâche">
     <h3>Créer une tâche pour ce projet</h3>
 
     <form (ngSubmit)="createTask()" #taskForm="ngForm" class="task-form">
@@ -173,7 +183,14 @@
     </form>
   </section>
 
-  <!-- ========= LISTE TÂCHES (optionnel mais pratique pour valider) ========= -->
+  <section class="task-creation locked" *ngIf="!canCreateTask" aria-label="Création tâche verrouillée">
+    <h3>Créer une tâche</h3>
+    <div class="info-note">
+      Action réservée aux <strong>ADMIN</strong> et <strong>MEMBRE</strong>.
+    </div>
+  </section>
+
+  <!-- ========= LISTE TÂCHES ========= -->
   <section class="tasks-list" *ngIf="tasks?.length" aria-label="Tâches du projet">
     <h3>Tâches du projet</h3>
 
@@ -181,7 +198,13 @@
       <li *ngFor="let t of tasks">
         <strong>{{ t.title }}</strong>
         <span> — {{ t.status }} / {{ t.priority }}</span>
-        <button type="button" (click)="loadHistory(t.id!)" aria-label="Voir historique">
+
+        <button
+          *ngIf="canViewTaskHistory"
+          type="button"
+          (click)="loadHistory(t.id!)"
+          aria-label="Voir historique"
+        >
           Historique
         </button>
       </li>
@@ -194,7 +217,6 @@
   </div>
 </div>
 
-<!-- ========= LOADING ========= -->
 <ng-template #loadingTemplate>
   <div class="loading-spinner">Chargement...</div>
 </ng-template>
