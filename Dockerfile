@@ -21,11 +21,7 @@ RUN apk add --no-cache tini \
   && rm -f /etc/nginx/conf.d/default.conf \
   && rm -rf /usr/share/nginx/html/*
 
-# Nginx config
-# Option A (recommandé) : tu fournis un default.conf (server block)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Option B (si ton nginx.conf est un fichier "main" complet)
 COPY nginx.default.conf /etc/nginx/conf.d/default.conf
 
 # Copy build output
