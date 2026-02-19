@@ -1,294 +1,323 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
-
 import { TaskListComponent } from './task-list.component';
 import { TaskService, Task } from '../../services/task.service';
+import { AuthService } from '../../services/auth.service';
+import { ProjectService } from '../../services/project.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { of, throwError } from 'rxjs';
 
 describe('TaskListComponent', () => {
-  let component: TaskListComponent;
   let fixture: ComponentFixture<TaskListComponent>;
-  let taskService: jasmine.SpyObj<TaskService>;
+  let component: TaskListComponent;
 
-  const mockTasks: Task[] = [
-    {
-      id: 1,
-      title: 'T1',
-      description: 'D1',
-      dueDate: '2026-02-17',
-      status: 'En attente',
-      priority: 'MOYENNE',
-      assigneeEmail: 'alice@example.com',
-      targetUserId: 26,
-    } as any,
-    {
-      id: 2,
-      title: 'T2',
-      description: 'D2',
-      dueDate: '2026-02-18',
-      status: 'En cours',
-      priority: 'HAUTE',
-      assigneeEmail: 'bob@example.com',
-      targetUserId: 26,
-    } as any,
-  ];
+  let taskSpy: jasmine.SpyObj<TaskService>;
+  let authSpy: jasmine.SpyObj<AuthService>;
+  let projectSpy: jasmine.SpyObj<ProjectService>;
+  let routerSpy: jasmine.SpyObj<Router>;
+
+  const routeStub = {
+    snapshot: {
+      paramMap: {
+        get: (key: string) => (key === 'projectId' ? '12' : null),
+      },
+    },
+  };
 
   beforeEach(async () => {
-    taskService = jasmine.createSpyObj<TaskService>('TaskService', [
+    taskSpy = jasmine.createSpyObj<TaskService>('TaskService', [
       'getTasks',
       'createTask',
-      'assignTaskToUser',
       'updateTask',
       'deleteTask',
       'getTaskHistory',
     ]);
-
-    // évite le bruit console lors des tests d'erreur
-    spyOn(console, 'error');
-
-    // valeurs par défaut
-    taskService.getTasks.and.returnValue(of(mockTasks));
-    taskService.createTask.and.callFake((t: any) => of({ ...t, id: 999 } as any));
-    taskService.assignTaskToUser.and.returnValue(of(void 0));
-    taskService.updateTask.and.callFake((t: any) => of({ ...t } as any));
-    taskService.deleteTask.and.returnValue(of(void 0));
-    taskService.getTaskHistory.and.returnValue(of([{ action: 'CREATED' }]));
+    authSpy = jasmine.createSpyObj<AuthService>('AuthService', ['getUserId']);
+    projectSpy = jasmine.createSpyObj<ProjectService>('ProjectService', ['getProjectMembers']);
+    routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      imports: [TaskListComponent], // standalone
-      providers: [{ provide: TaskService, useValue: taskService }],
+      imports: [TaskListComponent],
+      providers: [
+        { provide: TaskService, useValue: taskSpy },
+        { provide: AuthService, useValue: authSpy },
+        { provide: ProjectService, useValue: projectSpy },
+        { provide: Router, useValue: routerSpy },
+        { provide: ActivatedRoute, useValue: routeStub },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TaskListComponent);
     component = fixture.componentInstance;
   });
 
-  it('should create + init should load tasks and members and reset newTask', () => {
-    fixture.detectChanges(); // déclenche ngOnInit
-
+  it('should create', () => {
     expect(component).toBeTruthy();
-
-    expect(taskService.getTasks).toHaveBeenCalledWith(component.userId, component.projectId);
-    expect(component.tasks.length).toBe(2);
-
-    expect(component.projectMembers.length).toBeGreaterThan(0);
-
-    // newTask initialisé
-    expect(component.newTask).toBeTruthy();
-    expect(component.newTask.status).toBe('En attente');
-    expect(component.newTask.parentProject?.id).toBe(component.projectId);
-    expect(component.newTask.targetUserId).toBe(component.userId);
   });
 
-  it('loadTasks should set errorMessage on error', () => {
-    taskService.getTasks.and.returnValue(throwError(() => ({ status: 500 })));
+  it('ngOnInit should set error when user not connected', () => {
+    authSpy.getUserId.and.returnValue(null);
 
-    fixture.detectChanges(); // ngOnInit -> loadTasks
+    component.ngOnInit();
 
-    expect(component.errorMessage).toBe('Impossible de charger les tâches.');
-    expect(console.error).toHaveBeenCalled();
+    expect(component.errorMessage).toContain('Utilisateur non connecté');
+    expect(taskSpy.getTasks).not.toHaveBeenCalled();
   });
 
-  it('createTask should push created task + set successMessage and reset form', () => {
-    fixture.detectChanges();
-    component.tasks = [];
+  it('ngOnInit should set error when projectId missing', () => {
+    authSpy.getUserId.and.returnValue(1);
 
-    component.newTask.title = 'Nouvelle tâche';
-    component.newTask.description = 'Desc';
-    component.newTask.dueDate = '2026-02-20';
+    const badRoute = {
+      snapshot: { paramMap: { get: (_: string) => null } },
+    };
+    (component as any).route = badRoute;
+
+    component.ngOnInit();
+
+    expect(component.errorMessage).toContain('ProjectId manquant');
+  });
+
+  it('ngOnInit should load tasks and members when ok', () => {
+    authSpy.getUserId.and.returnValue(5);
+
+    const tasks: Task[] = [
+      {
+        id: 1,
+        title: 'A',
+        description: '',
+        dueDate: null,
+        status: 'En attente',
+        priority: 'MOYENNE',
+        targetUserId: 5,
+        project: { id: 12 },
+      },
+    ];
+
+    taskSpy.getTasks.and.returnValue(of(tasks));
+    projectSpy.getProjectMembers.and.returnValue(of([{ userId: 5, email: 'x@test.com' }]));
+
+    component.ngOnInit();
+
+    expect(component.projectId).toBe(12);
+    expect(component.userId).toBe(5);
+    expect(taskSpy.getTasks).toHaveBeenCalledWith({ projectId: 12 });
+    expect(projectSpy.getProjectMembers).toHaveBeenCalledWith(12);
+  });
+
+  it('goBackToProject should navigate', () => {
+    component.projectId = 12;
+    component.goBackToProject();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/projects', 12]);
+  });
+
+  it('createTask should default targetUserId to userId and call service', () => {
+    component.projectId = 12;
+    component.userId = 7;
+
+    component.newTask = {
+      title: 'T',
+      description: 'D',
+      dueDate: null,
+      status: 'En attente',
+      priority: 'MOYENNE',
+      targetUserId: 0,
+      project: { id: 0 },
+    };
+
+    taskSpy.createTask.and.returnValue(of({ ...component.newTask, id: 99, targetUserId: 7, project: { id: 12 } }));
+    taskSpy.getTasks.and.returnValue(of([]));
+    projectSpy.getProjectMembers.and.returnValue(of([]));
 
     component.createTask();
 
-    expect(taskService.createTask).toHaveBeenCalled();
-    expect(component.tasks.length).toBe(1);
-    expect(component.tasks[0].id).toBe(999);
-
-    expect(component.successMessage).toBe('Tâche créée avec succès !');
-    expect(component.errorMessage).toBe('');
-
-    // resetNewTask repasse les valeurs par défaut
-    expect(component.newTask.title).toBe('');
-    expect(component.newTask.status).toBe('En attente');
+    expect(taskSpy.createTask).toHaveBeenCalled();
+    const arg = taskSpy.createTask.calls.mostRecent().args[0];
+    expect(arg.targetUserId).toBe(7);
+    expect(arg.project).toEqual({ id: 12 });
+    expect(component.successMessage).toContain('Tâche créée');
   });
 
-  it('createTask should set errorMessage on error', () => {
-    fixture.detectChanges();
-    taskService.createTask.and.returnValue(throwError(() => ({ status: 400 })));
+  it('createTask should set errorMessage on failure', () => {
+    component.projectId = 12;
+    component.userId = 7;
+
+    component.newTask = {
+      title: 'T',
+      description: 'D',
+      dueDate: null,
+      status: 'En attente',
+      priority: 'MOYENNE',
+      targetUserId: 0,
+      project: { id: 0 },
+    };
+
+    taskSpy.createTask.and.returnValue(throwError(() => ({ status: 500 })));
 
     component.createTask();
 
-    expect(component.errorMessage).toBe('Impossible de créer la tâche.');
-    expect(component.successMessage).toBe('');
-    expect(console.error).toHaveBeenCalled();
+    expect(component.errorMessage).toContain('Impossible de créer la tâche');
   });
 
-  it('assignTask should early return if no id or no assigneeEmail', () => {
-    fixture.detectChanges();
+  it('startEditing should set editingTask when task has id', () => {
+    const t: Task = {
+      id: 1,
+      title: 'A',
+      description: '',
+      dueDate: null,
+      status: 'En attente',
+      priority: 'MOYENNE',
+      targetUserId: 1,
+      project: { id: 12 },
+    };
 
-    component.assignTask({ title: 'x' } as any);
-    component.assignTask({ id: 1, title: 'x' } as any);
-
-    expect(taskService.assignTaskToUser).not.toHaveBeenCalled();
-  });
-
-  it('assignTask success should set successMessage', () => {
-    fixture.detectChanges();
-
-    const task = { id: 10, assigneeEmail: 'alice@example.com' } as any;
-    component.assignTask(task);
-
-    expect(taskService.assignTaskToUser).toHaveBeenCalledWith(10, 'alice@example.com');
-    expect(component.successMessage).toContain('Tâche assignée à alice@example.com');
-    expect(component.errorMessage).toBe('');
-  });
-
-  it('assignTask error should set errorMessage', () => {
-    fixture.detectChanges();
-    taskService.assignTaskToUser.and.returnValue(throwError(() => ({ status: 500 })));
-
-    const task = { id: 10, assigneeEmail: 'alice@example.com' } as any;
-    component.assignTask(task);
-
-    expect(component.errorMessage).toBe('Erreur lors de l’assignation de la tâche');
-    expect(component.successMessage).toBe('');
-  });
-
-  it('startEditing / cancelEditing should work', () => {
-    fixture.detectChanges();
-
-    const t = mockTasks[0];
     component.startEditing(t);
     expect(component.editingTask).toBeTruthy();
-    expect(component.editingTask).not.toBe(t); // copie
-
-    component.cancelEditing();
-    expect(component.editingTask).toBeNull();
+    expect(component.editingTask!.id).toBe(1);
   });
 
-  it('updateTask should do nothing if editingTask is null', () => {
-    fixture.detectChanges();
-
-    component.editingTask = null;
-    component.updateTask();
-
-    expect(taskService.updateTask).not.toHaveBeenCalled();
-  });
-
-  it('updateTask success should replace task when found, clear editingTask, set success', () => {
-    fixture.detectChanges();
-    component.tasks = [...mockTasks];
-
-    component.startEditing(mockTasks[0]);
-    component.editingTask!.title = 'UPDATED';
-
-    component.updateTask();
-
-    expect(taskService.updateTask).toHaveBeenCalled();
-    expect(component.tasks[0].title).toBe('UPDATED');
-    expect(component.successMessage).toBe('Tâche mise à jour avec succès.');
-    expect(component.errorMessage).toBe('');
-    expect(component.editingTask).toBeNull();
-  });
-
-  it('updateTask success should NOT replace if task not found (index === -1)', () => {
-    fixture.detectChanges();
-    component.tasks = [...mockTasks];
-
-    component.editingTask = { id: 9999, title: 'X' } as any;
-    component.updateTask();
-
-    expect(taskService.updateTask).toHaveBeenCalled();
-    expect(component.tasks.length).toBe(2);
-    expect(component.successMessage).toBe('Tâche mise à jour avec succès.');
-    expect(component.editingTask).toBeNull();
-  });
-
-  it('updateTask error should set errorMessage', () => {
-    fixture.detectChanges();
-    component.tasks = [...mockTasks];
-    component.editingTask = { ...mockTasks[0] };
-
-    taskService.updateTask.and.returnValue(throwError(() => ({ status: 500 })));
-
-    component.updateTask();
-
-    expect(component.errorMessage).toBe('Impossible de mettre à jour la tâche.');
-    expect(component.successMessage).toBe('');
-    expect(console.error).toHaveBeenCalled();
-  });
-
-  it('deleteTask success should remove task and set successMessage', () => {
-    fixture.detectChanges();
-    component.tasks = [...mockTasks];
-
-    component.deleteTask(1);
-
-    expect(taskService.deleteTask).toHaveBeenCalledWith(1);
-    expect(component.tasks.find((t) => t.id === 1)).toBeUndefined();
-    expect(component.successMessage).toBe('Tâche supprimée avec succès.');
-    expect(component.errorMessage).toBe('');
-  });
-
-  it('deleteTask error should set errorMessage', () => {
-    fixture.detectChanges();
-    component.tasks = [...mockTasks];
-
-    taskService.deleteTask.and.returnValue(throwError(() => ({ status: 500 })));
-
-    component.deleteTask(1);
-
-    expect(component.errorMessage).toBe('Impossible de supprimer la tâche.');
-    expect(component.successMessage).toBe('');
-    expect(console.error).toHaveBeenCalled();
-  });
-
-  it('showHistory should fetch and toggle off when clicked twice', () => {
-    fixture.detectChanges();
-
-    component.showHistory(2);
-    expect(taskService.getTaskHistory).toHaveBeenCalledWith(2);
-    expect(component.visibleHistoryTaskId).toBe(2);
-    expect(component.selectedTaskHistory.length).toBeGreaterThan(0);
-
-    // second click -> hide
-    component.showHistory(2);
-    expect(component.visibleHistoryTaskId).toBeNull();
-    expect(component.selectedTaskHistory.length).toBe(0);
-  });
-
-  it('showHistory error should set errorMessage', () => {
-    fixture.detectChanges();
-    taskService.getTaskHistory.and.returnValue(throwError(() => ({ status: 500 })));
-
-    component.showHistory(2);
-
-    expect(component.errorMessage).toBe('Impossible de récupérer l’historique.');
-  });
-
-  it('editing getters should return empty string when no editingTask', () => {
-    fixture.detectChanges();
-    component.editingTask = null;
-
-    expect(component.editingTaskTitle).toBe('');
-    expect(component.editingTaskDescription).toBe('');
-    expect(component.editingTaskDueDate).toBe('');
-    expect(component.editingTaskPriority).toBe('');
-    expect(component.editingTaskStatus).toBe('');
-  });
-
-  it('editing getters should return values when editingTask exists', () => {
-    fixture.detectChanges();
-    component.editingTask = {
+  it('startEditing should do nothing when task has no id', () => {
+    const t: Task = {
       title: 'A',
-      description: 'B',
-      dueDate: '2026-02-20',
-      priority: 'BASSE',
-      status: 'En cours',
-    } as any;
+      description: '',
+      dueDate: null,
+      status: 'En attente',
+      priority: 'MOYENNE',
+      targetUserId: 1,
+      project: { id: 12 },
+    };
 
-    expect(component.editingTaskTitle).toBe('A');
-    expect(component.editingTaskDescription).toBe('B');
-    expect(component.editingTaskDueDate).toBe('2026-02-20');
-    expect(component.editingTaskPriority).toBe('BASSE');
-    expect(component.editingTaskStatus).toBe('En cours');
+    component.startEditing(t);
+    expect(component.editingTask).toBeNull();
+  });
+
+  it('updateTask should call service and update local list on success', () => {
+    component.projectId = 12;
+
+    const existing: Task = {
+      id: 10,
+      title: 'Old',
+      description: '',
+      dueDate: null,
+      status: 'En attente',
+      priority: 'MOYENNE',
+      targetUserId: 1,
+      project: { id: 12 },
+    };
+    component.tasks = [existing];
+
+    component.editingTask = { ...(existing as any), id: 10, title: 'New' };
+
+    const updated: Task = { ...existing, title: 'New' };
+    taskSpy.updateTask.and.returnValue(of(updated));
+
+    component.updateTask();
+
+    expect(taskSpy.updateTask).toHaveBeenCalledWith(10, jasmine.any(Object));
+    expect(component.tasks[0].title).toBe('New');
+    expect(component.successMessage).toContain('mise à jour');
+    expect(component.editingTask).toBeNull();
+  });
+
+  it('updateTask should set errorMessage on failure', () => {
+    component.projectId = 12;
+
+    const t: Task = {
+      id: 10,
+      title: 'Old',
+      description: '',
+      dueDate: null,
+      status: 'En attente',
+      priority: 'MOYENNE',
+      targetUserId: 1,
+      project: { id: 12 },
+    };
+    component.editingTask = { ...(t as any), id: 10 };
+
+    taskSpy.updateTask.and.returnValue(throwError(() => ({ status: 500 })));
+
+    component.updateTask();
+
+    expect(component.errorMessage).toContain('Impossible de mettre à jour');
+  });
+
+  it('deleteTask should remove item on success', () => {
+    component.tasks = [
+      {
+        id: 1,
+        title: 'A',
+        description: '',
+        dueDate: null,
+        status: 'En attente',
+        priority: 'MOYENNE',
+        targetUserId: 1,
+        project: { id: 12 },
+      },
+      {
+        id: 2,
+        title: 'B',
+        description: '',
+        dueDate: null,
+        status: 'En attente',
+        priority: 'MOYENNE',
+        targetUserId: 1,
+        project: { id: 12 },
+      },
+    ];
+
+    taskSpy.deleteTask.and.returnValue(of(void 0));
+
+    component.deleteTask(1);
+
+    expect(component.tasks.length).toBe(1);
+    expect(component.tasks[0].id).toBe(2);
+    expect(component.successMessage).toContain('supprimée');
+  });
+
+  it('deleteTask should set errorMessage on failure', () => {
+    component.tasks = [
+      {
+        id: 1,
+        title: 'A',
+        description: '',
+        dueDate: null,
+        status: 'En attente',
+        priority: 'MOYENNE',
+        targetUserId: 1,
+        project: { id: 12 },
+      },
+    ];
+
+    taskSpy.deleteTask.and.returnValue(throwError(() => ({ status: 500 })));
+
+    component.deleteTask(1);
+
+    expect(component.errorMessage).toContain('Impossible de supprimer');
+  });
+
+  it('showHistory should toggle off when same task selected', () => {
+    component.visibleHistoryTaskId = 3;
+    component.selectedTaskHistory = [{ x: 1 }];
+
+    component.showHistory(3);
+
+    expect(component.visibleHistoryTaskId).toBeNull();
+    expect(component.selectedTaskHistory).toEqual([]);
+  });
+
+  it('showHistory should load history and set visibleHistoryTaskId', () => {
+    taskSpy.getTaskHistory.and.returnValue(of([{ id: 1 }]));
+
+    component.showHistory(5);
+
+    expect(taskSpy.getTaskHistory).toHaveBeenCalledWith(5);
+    expect(component.visibleHistoryTaskId).toBe(5);
+    expect(component.selectedTaskHistory.length).toBe(1);
+  });
+
+  it('showHistory should set errorMessage on failure', () => {
+    taskSpy.getTaskHistory.and.returnValue(throwError(() => ({ status: 500 })));
+
+    component.showHistory(5);
+
+    expect(component.errorMessage).toContain('Impossible de récupérer l’historique');
   });
 });

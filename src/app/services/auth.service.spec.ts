@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AuthService, LoginResponse } from './auth.service';
+import { take } from 'rxjs/operators';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -48,7 +49,7 @@ describe('AuthService', () => {
   it('login() should NOT setLoggedIn when status not success', () => {
     service.login('x@mail.com', 'pw').subscribe();
 
-    const req = httpMock.expectOne(`${apiUrl}/login`);
+    const req = httpMock.expectOne((r) => r.method === 'POST' && r.url === `${apiUrl}/login`);
     req.flush({ status: 'error', message: 'nope' });
 
     expect(localStorage.getItem('userId')).toBeNull();
@@ -65,36 +66,41 @@ describe('AuthService', () => {
     expect(service.getUserId()).toBeNull();
   });
 
-  it('logout() should clear storage and set auth status false', (done) => {
+  it('logout() should clear storage and set auth status false', () => {
+    // Arrange
     localStorage.setItem('userEmail', 'a@b.com');
     localStorage.setItem('userId', '1');
     localStorage.setItem('userRole', 'ADMIN');
 
-    // observe auth status
-    service.getAuthStatus().subscribe((isLogged) => {
-      // after logout it should become false at least once
-      if (isLogged === false) {
-        expect(localStorage.getItem('userEmail')).toBeNull();
-        expect(localStorage.getItem('userId')).toBeNull();
-        expect(localStorage.getItem('userRole')).toBeNull();
-        done();
-      }
-    });
+    expect(localStorage.getItem('userEmail')).toBe('a@b.com');
+    expect(localStorage.getItem('userId')).toBe('1');
+    expect(localStorage.getItem('userRole')).toBe('ADMIN');
 
+    // Act
     service.logout();
+
+    // Assert
+    expect(localStorage.getItem('userEmail')).toBeNull();
+    expect(localStorage.getItem('userId')).toBeNull();
+    expect(localStorage.getItem('userRole')).toBeNull();
+    expect(service.isLoggedIn()).toBeFalse();
   });
 
   it('getUserEmail() should emit email only when logged in', (done) => {
     const values: Array<string | null> = [];
 
-    service.getUserEmail().subscribe((v) => {
-      values.push(v);
-      // after we set logged in, we expect non-null
-      if (values.length >= 2) {
-        expect(values[values.length - 1]).toBe('x@y.com');
-        done();
-      }
-    });
+    service
+      .getUserEmail()
+      .pipe(take(2)) // évite done appelé plusieurs fois
+      .subscribe({
+        next: (v) => values.push(v),
+        complete: () => {
+          expect(values.length).toBe(2);
+          expect(values[0]).toBeNull();
+          expect(values[1]).toBe('x@y.com');
+          done();
+        },
+      });
 
     // triggers auth state true
     service.setLoggedIn('x@y.com', 99, null);
@@ -103,13 +109,18 @@ describe('AuthService', () => {
   it('getUserRole() should emit role only when logged in', (done) => {
     const values: Array<string | null> = [];
 
-    service.getUserRole().subscribe((v) => {
-      values.push(v);
-      if (values.length >= 2) {
-        expect(values[values.length - 1]).toBe('ADMIN');
-        done();
-      }
-    });
+    service
+      .getUserRole()
+      .pipe(take(2)) // évite done appelé plusieurs fois
+      .subscribe({
+        next: (v) => values.push(v),
+        complete: () => {
+          expect(values.length).toBe(2);
+          expect(values[0]).toBeNull();
+          expect(values[1]).toBe('ADMIN');
+          done();
+        },
+      });
 
     service.setLoggedIn('x@y.com', 99, 'ADMIN');
   });

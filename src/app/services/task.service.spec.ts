@@ -143,7 +143,8 @@ describe('TaskService', () => {
 
   it('deleteTask() should call DELETE and complete', () => {
     service.deleteTask(8).subscribe((res) => {
-      expect(res).toBeUndefined();
+      // HttpClient<void> peut renvoyer null selon le flush
+      expect(res == null).toBeTrue();
     });
 
     const req = httpMock.expectOne((r) => r.method === 'DELETE' && r.url === `${apiUrl}/8`);

@@ -1,36 +1,38 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, flushMicrotasks } from '@angular/core/testing';
+import { ProjectsComponent } from './projects.component';
+import { AuthService } from '../../services/auth.service';
+import { ProjectService } from '../../services/project.service';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
-import { ProjectsComponent } from './projects.component';
-import { ProjectService } from '../../services/project.service';
-import { AuthService } from '../../services/auth.service';
-
 describe('ProjectsComponent', () => {
-  let component: ProjectsComponent;
   let fixture: ComponentFixture<ProjectsComponent>;
+  let component: ProjectsComponent;
 
-  let projectService: jasmine.SpyObj<ProjectService>;
-  let authService: jasmine.SpyObj<AuthService>;
-  let router: jasmine.SpyObj<Router>;
+  let authSpy: jasmine.SpyObj<AuthService>;
+  let projectSpy: jasmine.SpyObj<ProjectService>;
+  let routerSpy: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
-    projectService = jasmine.createSpyObj<ProjectService>('ProjectService', [
+    localStorage.clear();
+
+    authSpy = jasmine.createSpyObj<AuthService>('AuthService', [
+      'getLoggedInUserEmail',
+      'logout',
+    ]);
+    projectSpy = jasmine.createSpyObj<ProjectService>('ProjectService', [
       'getProjects',
       'addProject',
-      'addUserToProject',
+      'getProjectMembers',
     ]);
-    authService = jasmine.createSpyObj<AuthService>('AuthService', ['logout']);
-    router = jasmine.createSpyObj<Router>('Router', ['navigate']);
-
-    spyOn(console, 'error');
+    routerSpy = jasmine.createSpyObj<Router>('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
       imports: [ProjectsComponent],
       providers: [
-        { provide: ProjectService, useValue: projectService },
-        { provide: AuthService, useValue: authService },
-        { provide: Router, useValue: router },
+        { provide: AuthService, useValue: authSpy },
+        { provide: ProjectService, useValue: projectSpy },
+        { provide: Router, useValue: routerSpy },
       ],
     }).compileComponents();
 
@@ -38,141 +40,189 @@ describe('ProjectsComponent', () => {
     component = fixture.componentInstance;
   });
 
+  afterEach(() => {
+    localStorage.clear();
+  });
+
   it('should create', () => {
-    projectService.getProjects.and.returnValue(of([]));
-    fixture.detectChanges();
     expect(component).toBeTruthy();
   });
 
-  it('should load projects and set errorMessage to null when list is not empty', () => {
-    projectService.getProjects.and.returnValue(of([{ id: 1, name: 'P1' }]));
-    fixture.detectChanges();
+  it('ngOnInit should set clientEmail and loadProjects', () => {
+    authSpy.getLoggedInUserEmail.and.returnValue('owner@test.com');
 
-    expect(projectService.getProjects).toHaveBeenCalled();
-    expect(component.projects.length).toBe(1);
+    projectSpy.getProjects.and.returnValue(of([]));
+    spyOn(component, 'loadProjects').and.callThrough();
+
+    component.ngOnInit();
+
+    expect(component.newProject.clientEmail).toBe('owner@test.com');
+    expect(component.loadProjects).toHaveBeenCalled();
+  });
+
+  it('loadProjects should set projects = all when no current email', fakeAsync(() => {
+    // important : le composant fallback sur localStorage si AuthService renvoie vide
+    authSpy.getLoggedInUserEmail.and.returnValue('');
+    localStorage.removeItem('userEmail');
+
+    const all = [{ id: 1 }, { id: 2 }];
+    projectSpy.getProjects.and.returnValue(of(all));
+
+    component.loadProjects();
+    flushMicrotasks();
+
+    expect(component.projects.length).toBe(2);
     expect(component.errorMessage).toBeNull();
-  });
+  }));
 
-  it('should load projects and set errorMessage when list is empty', () => {
-    projectService.getProjects.and.returnValue(of([]));
-    fixture.detectChanges();
+  it('loadProjects should keep only owned + memberOf and remove duplicates', fakeAsync(() => {
+    authSpy.getLoggedInUserEmail.and.returnValue('me@test.com');
+    localStorage.removeItem('userEmail');
 
-    expect(projectService.getProjects).toHaveBeenCalled();
-    expect(component.projects).toEqual([]);
-    expect(component.errorMessage).toBe('Aucun projet trouvé.');
-  });
+    const all = [
+      { id: 1, clientEmail: 'me@test.com' },
+      { id: 2, clientEmail: 'other@test.com' },
+      { id: 3, clientEmail: 'other@test.com' },
+    ];
 
-  it('should handle loadProjects error', () => {
-    projectService.getProjects.and.returnValue(throwError(() => ({ status: 500 })));
-    fixture.detectChanges();
+    projectSpy.getProjects.and.returnValue(of(all));
 
-    expect(console.error).toHaveBeenCalled();
-    expect(component.errorMessage).toBe('Impossible de charger vos projets.');
-  });
+    projectSpy.getProjectMembers.and.callFake((projectId: number) => {
+      if (projectId === 2) return of([{ email: 'ME@test.com' }]); // case-insensitive
+      if (projectId === 3) return of([{ email: 'someone@test.com' }]);
+      return of([]);
+    });
 
-  it('should toggle add project form', () => {
-    component.showAddProjectForm = false;
+    component.loadProjects();
+    flushMicrotasks();
+
+    const ids = component.projects.map((p) => p.id).sort((a, b) => a - b);
+    expect(ids).toEqual([1, 2]);
+    expect(component.errorMessage).toBeNull();
+  }));
+
+  it('loadProjects should ignore member check errors (catch) and still set owned', fakeAsync(() => {
+    authSpy.getLoggedInUserEmail.and.returnValue('me@test.com');
+    localStorage.removeItem('userEmail');
+
+    const all = [
+      { id: 1, clientEmail: 'me@test.com' },
+      { id: 2, clientEmail: 'other@test.com' },
+    ];
+    projectSpy.getProjects.and.returnValue(of(all));
+
+    projectSpy.getProjectMembers.and.callFake((projectId: number) => {
+      if (projectId === 2) return throwError(() => new Error('boom'));
+      return of([]);
+    });
+
+    component.loadProjects();
+    flushMicrotasks();
+
+    expect(component.projects.map((p) => p.id)).toEqual([1]);
+    expect(component.errorMessage).toBeNull();
+  }));
+
+  it('loadProjects should set errorMessage when service fails', fakeAsync(() => {
+    authSpy.getLoggedInUserEmail.and.returnValue('me@test.com');
+    localStorage.removeItem('userEmail');
+
+    projectSpy.getProjects.and.returnValue(throwError(() => ({ status: 500 })));
+
+    component.loadProjects();
+    flushMicrotasks();
+
+    expect(component.errorMessage).toContain('Impossible de charger vos projets');
+  }));
+
+  it('toggleAddProjectForm should open and reset clientEmail and clear error', () => {
+    authSpy.getLoggedInUserEmail.and.returnValue('me@test.com');
+    localStorage.removeItem('userEmail');
+
+    component.errorMessage = 'X';
+
     component.toggleAddProjectForm();
+
     expect(component.showAddProjectForm).toBeTrue();
-
-    component.toggleAddProjectForm();
-    expect(component.showAddProjectForm).toBeFalse();
+    expect(component.errorMessage).toBeNull();
+    expect(component.newProject.clientEmail).toBe('me@test.com');
   });
 
-  it('should prevent submit when required fields are missing', () => {
+  it('onSubmit should set errorMessage when required fields missing', () => {
+    authSpy.getLoggedInUserEmail.and.returnValue('me@test.com');
+
     component.newProject = {
       name: '',
       description: '',
       startDate: '',
       endDate: '',
-      status: 'pending',
+      statut: 'Non défini',
       clientEmail: '',
-    } as any;
+    };
 
     component.onSubmit();
 
-    expect(component.errorMessage).toBe(
-      'Veuillez remplir tous les champs obligatoires, y compris le chef de projet.'
-    );
-    expect(projectService.addProject).not.toHaveBeenCalled();
+    expect(component.errorMessage).toContain('Veuillez remplir tous les champs');
+    expect(projectSpy.addProject).not.toHaveBeenCalled();
   });
 
-  it('should submit project, push response, close form and reset fields', () => {
-    component.projects = [];
+  it('onSubmit should call addProject with payload and reload projects on success', () => {
+    authSpy.getLoggedInUserEmail.and.returnValue('me@test.com');
+
+    component.newProject = {
+      name: '  P1  ',
+      description: '  D1  ',
+      startDate: '2026-02-01',
+      endDate: '',
+      statut: 'Non défini',
+      clientEmail: 'me@test.com',
+    };
+
+    projectSpy.addProject.and.returnValue(of({ id: 10 }));
+    projectSpy.getProjects.and.returnValue(of([]));
+    projectSpy.getProjectMembers.and.returnValue(of([]));
+
+    spyOn(component, 'loadProjects').and.callThrough();
+
     component.showAddProjectForm = true;
+    component.onSubmit();
+
+    expect(projectSpy.addProject).toHaveBeenCalled();
+    expect(component.loadProjects).toHaveBeenCalled();
+  });
+
+  it('onSubmit should set errorMessage on addProject error', () => {
+    authSpy.getLoggedInUserEmail.and.returnValue('me@test.com');
 
     component.newProject = {
-      name: 'Nouveau',
-      description: 'Desc',
-      startDate: '2026-02-01',
-      endDate: '2026-03-01',
-      status: 'pending',
-      clientEmail: 'u1.admin@test.com',
-    } as any;
+      name: 'P1',
+      description: 'D1',
+      startDate: '',
+      endDate: '',
+      statut: 'Non défini',
+      clientEmail: 'me@test.com',
+    };
 
-    projectService.addProject.and.returnValue(of({ id: 99, name: 'Nouveau' } as any));
+    projectSpy.addProject.and.returnValue(throwError(() => ({ status: 400 })));
 
     component.onSubmit();
 
-    expect(projectService.addProject).toHaveBeenCalled();
-    expect(component.projects.length).toBe(1);
-    expect(component.projects[0].id).toBe(99);
-
-    expect(component.showAddProjectForm).toBeFalse();
-    expect(component.newProject.name).toBe('');
-    expect(component.newProject.description).toBe('');
-    expect(component.newProject.clientEmail).toBe('');
+    expect(component.errorMessage).toContain("Impossible d'ajouter le projet");
   });
 
-  it('should handle addProject error', () => {
-    component.newProject = {
-      name: 'Nouveau',
-      description: 'Desc',
-      startDate: '2026-02-01',
-      endDate: '2026-03-01',
-      status: 'pending',
-      clientEmail: 'u1.admin@test.com',
-    } as any;
-
-    projectService.addProject.and.returnValue(throwError(() => ({ status: 500 })));
-
-    component.onSubmit();
-
-    expect(console.error).toHaveBeenCalled();
-    expect(component.errorMessage).toBe("Impossible d'ajouter le projet.");
+  it('viewProjectDetails should navigate', () => {
+    component.viewProjectDetails(7);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/projects', 7]);
   });
 
-  it('should invite member and call backend', () => {
-    projectService.addUserToProject.and.returnValue(of({ ok: true } as any));
-
-    component.inviteMember(1, 'u2.member@test.com', 'MEMBRE');
-
-    expect(projectService.addUserToProject).toHaveBeenCalledWith(1, 'u2.member@test.com', 'MEMBRE');
+  it('viewProjectTasks should navigate', () => {
+    component.viewProjectTasks(9);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/projects', 9, 'tasks']);
   });
 
-  it('should handle invite member error', () => {
-    projectService.addUserToProject.and.returnValue(throwError(() => ({ status: 500 })));
-
-    component.inviteMember(1, 'u2.member@test.com', 'MEMBRE');
-
-    expect(console.error).toHaveBeenCalled();
-    expect(component.errorMessage).toBe("Impossible d'inviter ce membre.");
-  });
-
-  it('should navigate to project details', () => {
-    component.viewProjectDetails(10);
-    expect(router.navigate).toHaveBeenCalledWith(['/projects', 10]);
-  });
-
-  it('should navigate to project tasks', () => {
-    component.viewProjectTasks(10);
-    expect(router.navigate).toHaveBeenCalledWith(['/projects', 10, 'tasks']);
-  });
-
-  it('should logout and redirect to /login', () => {
+  it('logout should call auth.logout and navigate to login', () => {
     component.logout();
-
-    expect(authService.logout).toHaveBeenCalled();
-    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+    expect(authSpy.logout).toHaveBeenCalled();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/login']);
   });
 });
