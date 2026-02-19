@@ -21,8 +21,8 @@ export class LoginComponent {
   onSubmit(): void {
     this.errorMessage = null;
 
-    const email = this.email?.trim();
-    const password = this.password?.trim();
+    const email = (this.email ?? '').trim();
+    const password = (this.password ?? '').trim();
 
     if (!email || !password) {
       this.errorMessage = 'Veuillez remplir tous les champs.';
@@ -35,10 +35,7 @@ export class LoginComponent {
       next: (response) => {
         // ✅ Auth valide uniquement si success + userId présent
         if (response?.status === 'success' && response?.userId) {
-          // AuthService.login() fait déjà setLoggedIn via tap,
-          // mais on garde défensif au cas où.
-          this.authService.setLoggedIn(response.email ?? email, response.userId);
-
+          // ✅ setLoggedIn est déjà fait dans AuthService.login() via tap()
           this.isLoading = false;
           this.router.navigate(['/projects']);
           return;
