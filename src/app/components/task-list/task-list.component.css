@@ -1,332 +1,91 @@
-/* =========================
-   TASK LIST – Premium (sobre)
-========================= */
+/* ===== FORMULAIRE TÂCHE ===== */
 
-.task-list-container {
-  max-width: 980px;
-  margin: 32px auto;
-  padding: 0 18px;
-  font-family: "Inter", sans-serif;
-  color: #111;
-}
-
-.task-list-container h1 {
-  font-size: 1.8rem;
-  font-weight: 650;
-  margin: 0 0 18px;
-  letter-spacing: -0.02em;
-}
-
-.task-form,
-.edit-form {
-  background: #fff;
+.task-form {
+  background: #ffffff;
   border: 1px solid #ececec;
-  border-radius: 14px;
-  padding: 18px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
+  padding: 28px;
+  margin-bottom: 40px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+}
+
+.task-form h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+/* Champs */
+
+.field {
+  display: flex;
+  flex-direction: column;
   margin-bottom: 18px;
 }
 
-.task-form h2,
-.edit-form h4 {
-  margin: 0 0 12px;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-}
-
 .field label {
-  display: block;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #222;
-  margin: 0 0 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #444;
 }
 
 .field input,
 .field textarea,
 .field select {
   width: 100%;
-  border: 1px solid #dadada;
-  background: #fafafa;
-  border-radius: 10px;
+  box-sizing: border-box; /* 🔥 important pour éviter le débordement */
   padding: 10px 12px;
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: 'Inter', sans-serif;
+  background-color: #fafafa;
+  transition: all 0.2s ease;
 }
 
 .field textarea {
-  min-height: 96px;
+  min-height: 90px;
   resize: vertical;
 }
+
+/* Focus premium */
 
 .field input:focus,
 .field textarea:focus,
 .field select:focus {
-  background: #fff;
-  border-color: #bdbdbd;
-  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.05);
+  outline: none;
+  border-color: #999;
+  background-color: #ffffff;
 }
+
+/* Grid responsive */
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
 }
 
-@media (max-width: 900px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
-}
+/* Bouton créer */
 
-.filter {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin: 14px 0;
-  padding: 12px 14px;
-  border: 1px solid #ececec;
-  background: #fff;
-  border-radius: 14px;
-}
-
-.filter label {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #222;
-  margin: 0;
-}
-
-.filter select {
-  max-width: 240px;
-}
-
-/* =========================
-   Cards
-========================= */
-
-.task-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 12px;
-}
-
-.task-card {
-  background: #fff;
-  border: 1px solid #ececec;
-  border-radius: 16px;
-  padding: 14px 16px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.04);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-}
-
-.task-card:hover {
-  transform: translateY(-1px);
-  border-color: #e0e0e0;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.06);
-}
-
-.task-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.task-title {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  line-height: 1.25;
-}
-
-.task-desc {
-  margin: 0 0 10px;
-  color: #444;
-  line-height: 1.55;
-  font-size: 0.95rem;
-}
-
-.task-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: #333;
-  font-size: 0.92rem;
-  padding-top: 10px;
-  border-top: 1px solid #f0f0f0;
-}
-
-/* =========================
-   Badges (status / priority)
-========================= */
-
-.task-badges {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid #e6e6e6;
-  background: #f7f7f7;
-  color: #111;
-  border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 0.82rem;
-  font-weight: 650;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-}
-
-/* Petits marqueurs (rendu premium discret) */
-.badge::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: #111;
-  opacity: 0.35;
-}
-
-/* =========================
-   Actions
-========================= */
-
-.task-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 12px;
-}
-
-.task-actions button,
-.task-form button,
-.edit-form button {
-  border-radius: 10px;
-  padding: 9px 12px;
-  border: 1px solid #d8d8d8;
-  background: #fff;
-  color: #111;
-  font-weight: 650;
-  font-size: 0.92rem;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
-}
-
-.task-actions button:hover,
-.task-form button:hover,
-.edit-form button:hover {
-  background: #f3f3f3;
-  border-color: #cfcfcf;
-}
-
-.task-actions button:active,
-.task-form button:active,
-.edit-form button:active {
-  transform: translateY(1px);
-}
-
-.task-form > button[type="submit"] {
-  margin-top: 12px;
-  background: #111;
-  border-color: #111;
-  color: #fff;
-}
-
-.task-form > button[type="submit"]:hover {
-  background: #222;
-}
-
-/* =========================
-   History
-========================= */
-
-.task-history,
-.history {
-  margin-top: 12px;
-  border-top: 1px solid #f0f0f0;
-  padding-top: 12px;
-}
-
-.task-history h4 {
-  margin: 0 0 8px;
-  font-size: 0.95rem;
-  font-weight: 650;
-}
-
-.history ul,
-.task-history ul {
-  list-style: none;
-  padding: 0;
-  margin: 8px 0 0;
-  display: grid;
-  gap: 8px;
-}
-
-.history li,
-.task-history li {
-  border: 1px solid #eeeeee;
-  background: #fafafa;
-  border-radius: 12px;
-  padding: 10px 12px;
-  font-size: 0.92rem;
-  color: #222;
-}
-
-.muted {
-  color: #666;
-  font-style: italic;
-}
-
-/* Feedback */
-.error {
-  color: #a94442;
-  background: #fdecec;
-  border: 1px solid #f5c2c2;
-  padding: 10px 12px;
-  border-radius: 12px;
-}
-
-.success {
-  color: #1f5f2f;
-  background: #ecf8ef;
-  border: 1px solid #c7eed0;
-  padding: 10px 12px;
-  border-radius: 12px;
-}
-
-/* ===== RETOUR PROJET ===== */
-.back-button-wrapper {
-  margin-bottom: 25px;
-}
-
-.back-btn {
-  background: transparent;
-  border: 1px solid #dcdcdc;
-  color: #1a1a1a;
-  padding: 8px 16px;
+.task-form button[type="submit"] {
+  margin-top: 15px;
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
   font-size: 0.9rem;
-  font-weight: 500;
-  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.back-btn:hover {
-  background-color: #f5f5f5;
-  border-color: #cfcfcf;
+.task-form button[type="submit"]:hover {
+  background-color: #333;
 }
 
-.back-btn:active {
-  background-color: #eeeeee;
-  transform: translateY(1px);
+.task-form button[type="submit"]:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
