@@ -4,6 +4,7 @@ import { AuthService } from '../../services/auth.service';
 import { ProjectService } from '../../services/project.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-projects',
@@ -23,9 +24,7 @@ export class ProjectsComponent implements OnInit {
     description: '',
     startDate: '',
     endDate: '',
-    // ✅ Backend : "statut" (pas "status")
     statut: 'Non défini',
-    // ✅ Backend : NOT NULL
     clientEmail: '',
   };
 
@@ -36,13 +35,11 @@ export class ProjectsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // ✅ Prefill du clientEmail depuis le user connecté
     this.newProject.clientEmail = this.getCurrentUserEmail() || '';
     this.loadProjects();
   }
 
   private getCurrentUserEmail(): string {
-    // selon ton AuthService, adapte si tu as déjà un getter propre
     return (
       this.authService.getLoggedInUserEmail?.() ||
       localStorage.getItem('userEmail') ||
@@ -50,18 +47,42 @@ export class ProjectsComponent implements OnInit {
     );
   }
 
-  loadProjects(): void {
+  async loadProjects(): Promise<void> {
     this.projectService.getProjects().subscribe({
-      next: (projects: any[]) => {
+      next: async (projects: any[]) => {
         const all = projects || [];
+        const myEmail = (this.getCurrentUserEmail() || '').trim().toLowerCase();
 
-        // ✅ Filtre UI minimal conforme : un user voit ses projets (chef de projet)
-        // (Sans sécurité backend, mais conforme aux user stories pour l’intégration)
-        const myEmail = this.getCurrentUserEmail().trim().toLowerCase();
+        if (!myEmail) {
+          this.projects = all;
+          this.errorMessage = this.projects.length === 0 ? 'Aucun projet trouvé.' : null;
+          return;
+        }
 
-        this.projects = myEmail
-          ? all.filter((p) => String(p?.clientEmail || '').trim().toLowerCase() === myEmail)
-          : all;
+        // 1) Chef de projet
+        const owned = all.filter(
+          (p) => String(p?.clientEmail || '').trim().toLowerCase() === myEmail
+        );
+
+        // 2) Projets où je suis membre (via /api/projects/{id}/users)
+        const membershipChecks = all.map(async (p) => {
+          try {
+            const members = await firstValueFrom(this.projectService.getProjectMembers(p.id));
+            const isMember = (members || []).some(
+              (m: any) => String(m?.email || '').trim().toLowerCase() === myEmail
+            );
+            return isMember ? p : null;
+          } catch {
+            return null;
+          }
+        });
+
+        const memberOf = (await Promise.all(membershipChecks)).filter(Boolean) as any[];
+
+        // Union sans doublons
+        const byId = new Map<number, any>();
+        [...owned, ...memberOf].forEach((p) => byId.set(p.id, p));
+        this.projects = Array.from(byId.values());
 
         this.errorMessage = this.projects.length === 0 ? 'Aucun projet trouvé.' : null;
       },
@@ -76,20 +97,17 @@ export class ProjectsComponent implements OnInit {
     this.showAddProjectForm = !this.showAddProjectForm;
     if (this.showAddProjectForm) {
       this.errorMessage = null;
-      // ✅ si l’utilisateur vient de se connecter, on s’assure que c’est rempli
       this.newProject.clientEmail = this.getCurrentUserEmail() || '';
     }
   }
 
   onSubmit(): void {
-    // ✅ Revalider les champs obligatoires
     const clientEmail = (this.newProject.clientEmail || this.getCurrentUserEmail()).trim();
     if (!this.newProject.name?.trim() || !this.newProject.description?.trim() || !clientEmail) {
       this.errorMessage = 'Veuillez remplir tous les champs obligatoires, y compris le chef de projet.';
       return;
     }
 
-    // ✅ Payload conforme backend
     const payload: any = {
       name: this.newProject.name.trim(),
       description: this.newProject.description.trim(),
@@ -100,10 +118,10 @@ export class ProjectsComponent implements OnInit {
     };
 
     this.projectService.addProject(payload).subscribe({
-      next: (response) => {
-        // ✅ Recharger pour appliquer le filtre + éviter incohérences d’état
+      next: () => {
         this.toggleAddProjectForm();
         this.resetNewProject();
+        // recharge : ça recalculera les memberships
         this.loadProjects();
       },
       error: (error) => {
@@ -134,12 +152,6 @@ export class ProjectsComponent implements OnInit {
 
   viewProjectTasks(projectId: number): void {
     this.router.navigate(['/projects', projectId, 'tasks']);
-  }
-
-  // ✅ La consigne veut l’invitation sur la page projet (pas dans le dashboard global).
-  // On neutralise proprement cette action ici pour éviter une UX “hors scope”.
-  inviteMember(): void {
-    this.errorMessage = 'Invitation disponible dans le détail du projet.';
   }
 
   logout(): void {
