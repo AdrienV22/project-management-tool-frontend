@@ -413,3 +413,17 @@ select:focus {
     grid-template-columns: 1fr;
   }
 }
+
+.page-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 14px 0 18px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 650;
+}

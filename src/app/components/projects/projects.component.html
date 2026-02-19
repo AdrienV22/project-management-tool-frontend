@@ -1,21 +1,4 @@
 <div class="page">
-  <header class="topbar">
-    <div class="topbar-left">
-      <div class="brand">
-        <div class="brand-dot"></div>
-        <span>Project Management Tool</span>
-      </div>
-      <span class="subtitle">Vos projets</span>
-    </div>
-
-    <div class="topbar-right">
-      <button class="btn btn-ghost" (click)="toggleAddProjectForm()">
-        {{ showAddProjectForm ? 'Annuler' : 'Ajouter un projet' }}
-      </button>
-      <button class="btn btn-primary" (click)="logout()">Se déconnecter</button>
-    </div>
-  </header>
-
   <section class="panel" *ngIf="showAddProjectForm">
     <div class="panel-header">
       <h2>Créer un projet</h2>
@@ -38,12 +21,7 @@
 
         <div class="field">
           <label for="statut">Statut</label>
-          <select
-            id="statut"
-            [(ngModel)]="newProject.statut"
-            name="statut"
-            required
-          >
+          <select id="statut" [(ngModel)]="newProject.statut" name="statut" required>
             <option value="Non défini">Non défini</option>
             <option value="En attente">En attente</option>
             <option value="En cours">En cours</option>
@@ -64,23 +42,12 @@
 
         <div class="field">
           <label for="startDate">Date de début</label>
-          <input
-            type="date"
-            id="startDate"
-            [(ngModel)]="newProject.startDate"
-            name="startDate"
-            required
-          />
+          <input type="date" id="startDate" [(ngModel)]="newProject.startDate" name="startDate" required />
         </div>
 
         <div class="field">
           <label for="endDate">Date de fin</label>
-          <input
-            type="date"
-            id="endDate"
-            [(ngModel)]="newProject.endDate"
-            name="endDate"
-          />
+          <input type="date" id="endDate" [(ngModel)]="newProject.endDate" name="endDate" />
         </div>
 
         <div class="field full">
@@ -105,6 +72,13 @@
       </div>
     </form>
   </section>
+
+  <div class="page-actions" *ngIf="!showAddProjectForm">
+    <h2 class="page-title">Vos projets</h2>
+    <button class="btn btn-primary" (click)="toggleAddProjectForm()">
+      Ajouter un projet
+    </button>
+  </div>
 
   <div *ngIf="errorMessage" class="alert">
     {{ errorMessage }}
