@@ -117,3 +117,28 @@ body {
     padding: 18px 14px 90px;
   }
 }
+
+.user-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #444;
+  margin-right: 14px;
+}
+
+.user-indicator strong {
+  font-weight: 650;
+  color: #111;
+}
+
+.role-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f3f3f3;
+  border: 1px solid #e0e0e0;
+  color: #333;
+}
+

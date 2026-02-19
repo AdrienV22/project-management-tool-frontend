@@ -14,9 +14,13 @@ import { AuthService } from './services/auth.service';
 })
 export class AppComponent {
   isLoggedIn$: Observable<boolean>;
+  userEmail$: Observable<string | null>;
+  userRole$: Observable<string | null>;
 
   constructor(private authService: AuthService, private router: Router) {
     this.isLoggedIn$ = this.authService.getAuthStatus();
+    this.userEmail$ = this.authService.getUserEmail();
+    this.userRole$ = this.authService.getUserRole();
   }
 
   logout(): void {

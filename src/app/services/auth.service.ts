@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 export type LoginResponse = {
   status?: 'success' | 'error';
@@ -10,7 +10,7 @@ export type LoginResponse = {
   email?: string;
   username?: string;
   role?: string;
-  token?: string; // optionnel si jamais tu l’ajoutes un jour
+  token?: string; // optionnel
 };
 
 @Injectable({
@@ -31,7 +31,7 @@ export class AuthService {
         tap((res) => {
           // ✅ Projet sans Spring Security : on se base sur status + userId
           if (res?.status === 'success' && res?.userId) {
-            this.setLoggedIn(res.email ?? email, res.userId);
+            this.setLoggedIn(res.email ?? email, res.userId, res.role ?? null);
           }
         })
       );
@@ -49,12 +49,17 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userId');
+    localStorage.removeItem('userRole');
     this.isAuthenticatedSubject.next(false);
   }
 
-  setLoggedIn(email: string, userId: number): void {
+  // ✅ Stockage "session" light
+  setLoggedIn(email: string, userId: number, role: string | null): void {
     localStorage.setItem('userEmail', email);
     localStorage.setItem('userId', String(userId));
+    if (role) localStorage.setItem('userRole', role);
+    else localStorage.removeItem('userRole');
+
     this.isAuthenticatedSubject.next(true);
   }
 
@@ -73,6 +78,19 @@ export class AuthService {
   getUserId(): number | null {
     const value = localStorage.getItem('userId');
     return value ? Number(value) : null;
+  }
+
+  // ✅ Pour le header (async pipe)
+  getUserEmail(): Observable<string | null> {
+    return this.getAuthStatus().pipe(
+      map((isLoggedIn) => (isLoggedIn ? localStorage.getItem('userEmail') : null))
+    );
+  }
+
+  getUserRole(): Observable<string | null> {
+    return this.getAuthStatus().pipe(
+      map((isLoggedIn) => (isLoggedIn ? localStorage.getItem('userRole') : null))
+    );
   }
 
   private hasUserId(): boolean {

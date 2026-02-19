@@ -9,13 +9,15 @@
         <a routerLink="/projects" *ngIf="isLoggedIn$ | async">Projets</a>
       </div>
 
-      <div class="nav-right">
-        <button
-          *ngIf="isLoggedIn$ | async"
-          (click)="logout()"
-          class="logout-btn"
-          type="button"
-        >
+      <div class="nav-right" *ngIf="isLoggedIn$ | async">
+        <span class="user-indicator">
+          Connecté en tant que <strong>{{ userEmail$ | async }}</strong>
+          <span class="role-badge" *ngIf="(userRole$ | async) as role">
+            {{ role }}
+          </span>
+        </span>
+
+        <button (click)="logout()" class="logout-btn" type="button">
           Déconnexion
         </button>
       </div>
