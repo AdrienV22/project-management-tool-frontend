@@ -37,16 +37,17 @@
         </div>
 
         <div class="field">
-          <label for="status">Statut</label>
+          <label for="statut">Statut</label>
           <select
-            id="status"
-            [(ngModel)]="newProject.status"
-            name="status"
+            id="statut"
+            [(ngModel)]="newProject.statut"
+            name="statut"
             required
           >
-            <option value="pending">En attente</option>
-            <option value="in_progress">En cours</option>
-            <option value="completed">Terminé</option>
+            <option value="Non défini">Non défini</option>
+            <option value="En attente">En attente</option>
+            <option value="En cours">En cours</option>
+            <option value="Terminé">Terminé</option>
           </select>
         </div>
 
@@ -79,7 +80,6 @@
             id="endDate"
             [(ngModel)]="newProject.endDate"
             name="endDate"
-            required
           />
         </div>
 
@@ -93,6 +93,9 @@
             required
             placeholder="ex: u1.admin@test.com"
           />
+          <small class="hint">
+            Astuce : par défaut, c’est votre email (compte connecté).
+          </small>
         </div>
       </div>
 
@@ -114,13 +117,24 @@
           <h3 class="card-title">{{ project.name }}</h3>
           <p class="card-sub">{{ project.description }}</p>
         </div>
-        <div class="badge">{{ project.status || 'pending' }}</div>
+
+        <div class="badge">
+          {{ project.statut || 'Non défini' }}
+        </div>
       </div>
 
       <div class="meta">
         <div class="meta-row">
           <span class="meta-label">Chef de projet</span>
-          <span class="meta-value">{{ project.clientEmail || project.client }}</span>
+          <span class="meta-value">{{ project.clientEmail }}</span>
+        </div>
+        <div class="meta-row" *ngIf="project.startDate">
+          <span class="meta-label">Début</span>
+          <span class="meta-value">{{ project.startDate | date }}</span>
+        </div>
+        <div class="meta-row" *ngIf="project.endDate">
+          <span class="meta-label">Fin</span>
+          <span class="meta-value">{{ project.endDate | date }}</span>
         </div>
       </div>
 
@@ -131,34 +145,9 @@
 
       <div class="divider"></div>
 
-      <form
-        class="invite"
-        #inviteForm="ngForm"
-        (ngSubmit)="inviteMember(project.id, inviteEmail.value, inviteRole.value)"
-      >
-        <div class="invite-title">Inviter un membre</div>
-
-        <div class="invite-row">
-          <input
-            type="email"
-            name="inviteEmail"
-            required
-            placeholder="email du membre (ex: u2.member@test.com)"
-            #inviteEmail="ngModel"
-            ngModel
-          />
-
-          <select name="inviteRole" required #inviteRole="ngModel" ngModel>
-            <option value="ADMIN">Administrateur</option>
-            <option value="MEMBRE" selected>Membre</option>
-            <option value="OBSERVATEUR">Observateur</option>
-          </select>
-
-          <button class="btn btn-primary" type="submit" [disabled]="!inviteForm.form.valid">
-            Inviter
-          </button>
-        </div>
-      </form>
+      <div class="note">
+        <strong>Invitation :</strong> disponible dans <em>le détail du projet</em>.
+      </div>
     </article>
   </section>
 
