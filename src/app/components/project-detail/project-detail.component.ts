@@ -38,6 +38,13 @@ export class ProjectDetailComponent implements OnInit {
   // ✅ Edition tâche inline
   editingTask: Task | null = null;
 
+  // ========= TOAST UI =========
+  toastVisible = false;
+  toastType: 'success' | 'error' = 'success';
+  toastTitle = '';
+  toastMessage = '';
+  private toastTimer: ReturnType<typeof setTimeout> | null = null;
+
   // ✅ Helpers UI (permissions)
   get canInvite(): boolean {
     return this.currentUserRole === 'ADMIN';
@@ -157,6 +164,33 @@ export class ProjectDetailComponent implements OnInit {
     });
   }
 
+  // ========= TOAST =========
+  private showToast(
+    type: 'success' | 'error',
+    title: string,
+    message: string,
+    durationMs = 3200
+  ): void {
+    this.toastType = type;
+    this.toastTitle = title;
+    this.toastMessage = message;
+    this.toastVisible = true;
+
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.toastTimer = setTimeout(() => {
+      this.toastVisible = false;
+      this.toastTimer = null;
+    }, durationMs);
+  }
+
+  hideToast(): void {
+    this.toastVisible = false;
+    if (this.toastTimer) {
+      clearTimeout(this.toastTimer);
+      this.toastTimer = null;
+    }
+  }
+
   enableEditMode(): void {
     if (!this.canEditProject) return;
     this.isEditing = true;
@@ -214,11 +248,24 @@ export class ProjectDetailComponent implements OnInit {
 
     this.projectService.addUserToProject(this.project.id, cleanEmail, this.inviteRole).subscribe({
       next: () => {
+        this.showToast(
+          'success',
+          'Invitation envoyée',
+          `${cleanEmail} a été invité en tant que ${this.inviteRole}.`
+        );
+
         this.inviteEmail = '';
         this.inviteRole = 'MEMBRE';
         this.loadMembers(this.project.id);
       },
-      error: (e) => console.error('Erreur invitation', e),
+      error: (e) => {
+        console.error('Erreur invitation', e);
+        this.showToast(
+          'error',
+          'Invitation impossible',
+          "Une erreur est survenue. Vérifie l'email ou réessaie."
+        );
+      },
     });
   }
 
@@ -230,8 +277,14 @@ export class ProjectDetailComponent implements OnInit {
     if (!email || !role) return;
 
     this.projectService.addUserToProject(this.project.id, email, role).subscribe({
-      next: () => this.loadMembers(this.project.id),
-      error: (e) => console.error('Erreur role', e),
+      next: () => {
+        this.showToast('success', 'Rôle mis à jour', `${email} est maintenant ${role}.`);
+        this.loadMembers(this.project.id);
+      },
+      error: (e) => {
+        console.error('Erreur role', e);
+        this.showToast('error', 'Mise à jour impossible', 'Impossible de changer le rôle.');
+      },
     });
   }
 

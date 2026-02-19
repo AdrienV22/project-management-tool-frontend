@@ -10,6 +10,25 @@
     </div>
   </header>
 
+  <!-- ========= TOAST (premium) ========= -->
+  <div
+    class="toast"
+    *ngIf="toastVisible"
+    [class.toast--success]="toastType === 'success'"
+    [class.toast--error]="toastType === 'error'"
+    role="status"
+    aria-live="polite"
+  >
+    <div class="toast__content">
+      <div class="toast__title">{{ toastTitle }}</div>
+      <div class="toast__message">{{ toastMessage }}</div>
+    </div>
+
+    <button type="button" class="toast__close" (click)="hideToast()" aria-label="Fermer">
+      ×
+    </button>
+  </div>
+
   <!-- ========= MODE LECTURE ========= -->
   <form
     *ngIf="!isEditing; else editFormTemplate"
